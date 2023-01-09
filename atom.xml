@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>朝花夕拾</title>
+  
+  
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2023-01-09T18:38:16.286Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>fangbin</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>垃圾回收 经典垃圾收集器</title>
+    <link href="http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E7%BB%8F%E5%85%B8%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/"/>
+    <id>http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E7%BB%8F%E5%85%B8%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/</id>
+    <published>2022-12-05T10:50:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671982780287-700ffa4f-2e0d-488f-9661-b0bd1075c8cb.png#averageHue=%23e2e2e2&clientId=u2e979ab6-cfa9-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=331&id=u9329e536&margin=%5Bobject%20Object%5D&name=6262bab4-0127-40cf-b2f6-adb08b155925.png&originHeight=719&originWidth=755&originalType=binary&ratio=1&rotation=0&showTitle=true&size=160916&status=done&style=none&taskId=u1a47a6af-40e3-4a9c-9058-155712d181d&title=HotSpot%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8&width=348" alt="6262bab4-0127-40cf-b2f6-adb08b155925.png" title="HotSpot 虚拟机的垃圾收集器"><br />图中展示了七种作用于不同分代的收集器，如果两个收集器之间存在连线，就说明它们可以搭配使用，图中收集器所处的区域，则表示它是属于新生代收集器抑或是老年代收集器。<br><a name="xRcrf"></a></p><h4 id="Serial-收集器"><a href="#Serial-收集器" class="headerlink" title="Serial 收集器"></a>Serial 收集器</h4><p>Serial 收集器是一个单线程工作的收集器，“单线程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强调在它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671983103283-c9820545-3293-400c-9056-8322d3c4de87.png#averageHue=%23f4f4f4&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=139&id=ua8a4fc5f&margin=%5Bobject%20Object%5D&name=5c6cecf7-0d56-4b2f-8ce6-53dc66b56ae7.png&originHeight=161&originWidth=751&originalType=binary&ratio=1&rotation=0&showTitle=true&size=54261&status=done&style=none&taskId=u4d4530c8-ba01-4269-a5b5-80c69e34186&title=Serial%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=646.7999877929688" alt="5c6cecf7-0d56-4b2f-8ce6-53dc66b56ae7.png" title="Serial/Serial Old 收集器运行示意图"><br />从 Serial 收集器到 Parallel 收集器，再到 CMS 和 G1 收集器，最终至现在垃圾收集器的最前沿成果 Shenandoah 和 ZGC 等，用户线程的停顿时间在持续缩短，但是仍然没有办法彻底消除。<br />Serial 收集器是 HotSpot 虚拟机运行在客户端模式下的默认新生代收集器，它的优点在于简单而高效，它是所有收集器里额外内存消耗最小的，对于单核处理器或处理器核心数较少的环境来说，Serial 收集器由于没有线程交互的开销，可以获得最高的单线程收集效率。<br><a name="Eb3c4"></a></p><h4 id="ParNew-收集器"><a href="#ParNew-收集器" class="headerlink" title="ParNew 收集器"></a>ParNew 收集器</h4><p>ParNew 收集器实质上是 Serial 收集器的多线程并行版本，除了同时使用多条线程进行垃圾收集之外，其余的行为包括控制参数、收集算法、Stop The World、对象分配规则、回收策略等都与 Serial 收集器完全一致。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671983585094-4f92c7a0-40e7-40e4-a6b5-27a0b5426984.png#averageHue=%23f1f1f1&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=145&id=u04555b4b&margin=%5Bobject%20Object%5D&name=3c9da17f-0c07-47dd-bb72-45b1a1cf0689.png&originHeight=163&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=59429&status=done&style=none&taskId=u8a0df765-e888-4520-b508-68257c5df21&title=ParNew%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=676.4000244140625" alt="3c9da17f-0c07-47dd-bb72-45b1a1cf0689.png" title="ParNew/Serial Old 收集器运行示意图"><br />ParNew 收集器除了支持多线程并行收集之外，其他与 Serial 收集器相比并没有太多创新之处，但它却有很多运行在服务端模式下的 HotSpot 虚拟机，其中有一个很重要的原因是：除了 Serial 收集器外，目前只有它能与 CMS 收集器配合工作。<br />CMS 收集器是第一款真正意义上支持并发的垃圾收集器，它首次实现了让垃圾收集线程与用户线程同时工作。但G1 收集器取代了 CMS 收集器，G1 是一个面向全堆的收集器，不再需要其他新生代收集器的配合工作。<br />ParNew 收集器由于存在线程交互的开销在单核心处理器的环境中不会有比 Serial 收集器更好的效果。<br><a name="aCDmL"></a></p><h4 id="Parallel-Scavenge-收集器"><a href="#Parallel-Scavenge-收集器" class="headerlink" title="Parallel Scavenge 收集器"></a>Parallel Scavenge 收集器</h4><p>Parallel Scavenge 收集器也是一款新生代收集器，它同样是基于标记-复制算法实现的收集器，也是能够并行收集的多线程收集器。特点是它的关注点与其他收集器不同，CMS 等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而 Parallel Scavenge 收集器的目标则是达到一个可控制的吞吐量。<br />停顿时间越短就越适合需要与用户交互或需要保证服务响应质量的程序，良好的响应速度能提升用户体验；而高吞吐量则可以最高效率地利用处理器资源，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的分析任务。<br />虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量。这种调节方式称为垃圾收集的自适应的调节策略。自适应调节策略是 Parallel Scavenge 收集器区别于 ParNew 收集器的一个重要特性。<br><a name="sHCqi"></a></p><h4 id="Serial-Old-收集器"><a href="#Serial-Old-收集器" class="headerlink" title="Serial Old 收集器"></a>Serial Old 收集器</h4><p>Serial Old 是 Serial 收集器的老年代版本，它同样是一个单线程收集器，使用标记-整理算法。这个收集器的主要意义也是供客户端模式下的 HotSpot 虚拟机使用。如果在服务端模式下，它也可能有两种用途：</p><ul><li>一种是在 JDK 5 以及之前的版本中与 Parallel Scavenge 收集器搭配使用；</li><li>另一种就是作为 CMS 收集器发生失败时的后备预案，在并发收集发生 Concurrent Mode Failure 时使用。</li></ul><p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671984622183-1f27ed71-2ec9-4cdc-9367-ed43c7942ecb.png#averageHue=%23f3f3f3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=133&id=ufdf50e23&margin=%5Bobject%20Object%5D&name=a733cb0c-faf0-4f5c-90fd-93f323c99b24.png&originHeight=161&originWidth=762&originalType=binary&ratio=1&rotation=0&showTitle=true&size=53742&status=done&style=none&taskId=ua7e6d3fc-ab39-4a23-9feb-33da0d27750&title=Serial%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=628.6000366210938" alt="a733cb0c-faf0-4f5c-90fd-93f323c99b24.png" title="Serial/Serial Old 收集器运行示意图"><br><a name="FfDdx"></a></p><h4 id="Parallel-Old-收集器"><a href="#Parallel-Old-收集器" class="headerlink" title="Parallel Old 收集器"></a>Parallel Old 收集器</h4><p>Parallel Old 是 Parallel Scavenge 收集器的老年代版本，支持多线程并发收集，基于标记-整理算法实现。<br />在注重吞吐量或者处理器资源较为稀缺的场合，都可以优先考虑 Parallel Scavenge 加 Parallel Old 收集器这个组合。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671984910650-4a30ecc9-7aea-4d71-b215-21ca377218b4.png#averageHue=%23f3f3f3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=144&id=u4aa6c95d&margin=%5Bobject%20Object%5D&name=f7624728-6b23-402f-852d-0f1725feb6e9.png&originHeight=178&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=65152&status=done&style=none&taskId=uf8997692-b1fe-4b89-9ce7-0fef0e07e65&title=Parallel%20Scavenge%2FParallel%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=614.4000244140625" alt="f7624728-6b23-402f-852d-0f1725feb6e9.png" title="Parallel Scavenge/Parallel Old 收集器运行示意图"><br><a name="Umi85"></a></p><h4 id="CMS-收集器"><a href="#CMS-收集器" class="headerlink" title="CMS 收集器"></a>CMS 收集器</h4><p>CMS 收集器是一种以获取最短回收停顿时间为目标的收集器。目前 Java 应用集中在互联网网站或者基于浏览器的 B&#x2F;S 系统的服务端上，这类应用通常都会较为关注服务的响应速度，希望系统停顿时间尽可能短，以给用户带来良好的交互体验。CMS 收集器就非常符合这类应用的需求。<br />CMS 收集器是基于标记-清除算法实现的，运作过程相对更复杂一些，整个过程分为四个步骤，包括：</p><ul><li>初始标记阶段仅仅只是标记一下 GC Roots 能直接关联到的对象，速度很快；</li><li>并发标记阶段就是从 GC Roots 的直接关联对象开始遍历整个对象图的过程，这个过程耗时较长但是不需要停顿用户线程，可以与垃圾收集线程一起并发运行；</li><li>重新标记阶段则是为了修正并发标记期间，因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间通常会比初始标记阶段稍长一些，但也远比并发标记阶段的时间短；</li><li>并发清除阶段会清理删除掉标记阶段判断的已经死亡的对象，由于不需要移动存活对象，所以这个阶段也是可以与用户线程同时并发的。</li></ul><p>其中初始标记、重新标记这两个步骤仍然需要“Stop The World”。<br />由于在整个过程中耗时最长的并发标记和并发清除阶段中，垃圾收集器线程都可以与用户线程一起工作，所以从总体上来说，CMS 收集器的内存回收过程是与用户线程一起并发执行的。<br />图中可以比较清楚地看到 CMS 收集器的运作步骤中并发和需要停顿的阶段：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671985292763-fdbc4947-16f2-4a5b-9331-d8e6b2dcb081.png#averageHue=%23e5e5e3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=141&id=u67376f47&margin=%5Bobject%20Object%5D&name=50fdf46f-02aa-4530-a2ef-d6e0bdcd9cd9.png&originHeight=164&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=88065&status=done&style=none&taskId=ue0ce0eaf-93c8-47cf-8b11-2f31a8dc01f&title=Concurrent%20Mark%20Sweep%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=651.4000244140625" alt="50fdf46f-02aa-4530-a2ef-d6e0bdcd9cd9.png" title="Concurrent Mark Sweep 收集器运行示意图"><br />CMS 最主要的优点在于：并发收集、低停顿。但是它有以下三个明显的缺点：</p><ul><li>对处理器资源非常敏感。面向并发设计的程序都对处理器资源比较敏感。在并发阶段，它虽然不会导致用户线程停顿，但却会因为占用了一部分线程而导致应用程序变慢，降低总吞吐量。如果应用本来的处理器负载就很高，还要分出运算能力去执行收集器线程，就可能导致用户程序的执行速度忽然大幅降低；</li><li>由于 CMS 收集器无法处理“浮动垃圾”，有可能出现“ 并发失败”进而导致另一次完全“Stop The World”的 Full GC 的产生。在 CMS 的并发标记和并发清理阶段，用户线程是还在继续运行的，程序在运行自然就还会伴随有新的垃圾对象不断产生，但这一部分垃圾对象是出现在标记过程结束以后，CMS 无法在当次收集中处理掉它们，只好留待下一次垃圾收集时再清理掉。这一部分垃圾就称为“浮动垃圾”。由于在垃圾收集阶段用户线程还需要持续运行，那就还需要预留足够内存空间提供给用户线程使用，因此 CMS 收集器不能像其他收集器那样等待到老年代几乎完全被填满了再进行收集，必须预留一部分空间供并发收集时的程序运作使用。要是 CMS 运行期间预留的内存无法满足程序分配新对象的需要，就会出现一次“并发失败”，这时候虚拟机就会冻结用户线程的执行，临时启用 Serial Old 收集器来重新进行老年代的垃圾收集，但这样停顿时间就很长了；</li><li>CMS 基于“标记-清除”算法实现，这意味着收集结束时会有大量空间碎片产生。空间碎片过多时，将会给大对象分配带来很大麻烦，往往会出现老年代还有很多剩余空间，但就是无法找到足够大的连续空间来分配当前对象，而不得不提前触发一次 Full GC 的情况。<br><a name="EaM1n"></a></li></ul><h4 id="Garbage-First-收集器"><a href="#Garbage-First-收集器" class="headerlink" title="Garbage First 收集器"></a>Garbage First 收集器</h4><p>Garbage First（简称 G1）收集器开创了收集器面向局部收集的设计思路和基于 Region 的内存布局形式。<br />在 G1 收集器出现之前的所有其他收集器，包括 CMS 在内，垃圾收集的目标范围要么是整个新生代（Minor GC），要么就是整个老年代（Major GC），再要么就是整个 Java 堆（Full GC）。而 G1 跳出了这个范围，它可以面向堆内存任何部分来组成回收集进行回收，衡量标准不再是它属于哪个分代，而是哪块内存中存放的垃圾数量最多，回收收益最大，这就是 G1 收集器的 Mixed GC 模式。<br />G1 开创的基于 Region 的堆内存布局是它能够实现这个目标的关键。虽然 G1 也仍是遵循分代收集理论设计的，但其堆内存的布局与其他收集器有非常明显的差异：G1不再坚持固定大小以及固定数量的分代区域划分，而是把连续的 Java 堆划分为多个大小相等的独立区域（Region），每一个 Region 都可以根据需要，扮演新生代的 Eden 空间、Survivor 空间，或者老年代空间。收集器能够对扮演不同角色的 Region 采用不同的策略去处理，这样无论是新创建的对象还是已经存活了一段时间、熬过多次收集的旧对象都能获取很好的收集效果<br />Region 中还有一类特殊的 Humongous 区域，专门用来存储大对象。G1 认为只要大小超过了一个 Region 容量一半的对象即可判定为大对象。对于那些超过了整个 Region 容量的超级大对象，将会被存放在 N 个连续的 Humongous Region 之中，G1 的大多数行为都把 Humongous Region 作为老年代的一部分来进行看待。<br />虽然 G1 仍然保留新生代和老年代的概念，但新生代和老年代不再是固定的了，它们都是一系列区域（不需要连续）的动态集合。G1 收集器之所以能建立可预测的停顿时间模型，是因为它将 Region 作为单次回收的最小单元，即每次收集到的内存空间都是 Region 大小的整数倍，这样可以有计划地避免在整个 Java 堆中进行全区域的垃圾收集。具体的处理思路是让 G1 收集器去跟踪各个 Region 里面的垃圾堆积的“价值”大小，价值即回收所获得的空间大小以及回收所需时间的经验值，然后在后台维护一个优先级列表，每次根据用户设定允许的收集停顿时间，优先处理回收价值收益最大的那些 Region，这也就是“Garbage First”名字的由来。这种使用 Region 划分内存空间，以及具有优先级的区域回收方式，保证了 G1 收集器在有限的时间内获取尽可能高的收集效率。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671991827802-5de78ccb-ff1a-44de-9477-db584209f5d4.png#averageHue=%23e8e8e8&clientId=uf37728cb-50e0-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=424&id=u2cf9068e&margin=%5Bobject%20Object%5D&name=c81076a4-3799-410c-adab-e9a3dc7f8c21.png&originHeight=574&originWidth=771&originalType=binary&ratio=1&rotation=0&showTitle=true&size=74451&status=done&style=none&taskId=u8f84b2ec-4385-48c0-9f06-32bc38d64e1&title=G1%20%E6%94%B6%E9%9B%86%E5%99%A8%20Region%20%E5%88%86%E5%8C%BA%E7%A4%BA%E6%84%8F%E5%9B%BE&width=569" alt="c81076a4-3799-410c-adab-e9a3dc7f8c21.png" title="G1 收集器 Region 分区示意图"><br />G1 收集器的运作过程大致可划分为以下四个步骤：</p><ul><li>初始标记：仅仅只是标记一下 GC Roots 能直接关联到的对象，并且修改 TAMS 指针的值，让下一阶段用户线程并发运行时，能正确地在可用的Region 中分配新对象。这个阶段需要停顿线程，但耗时很短，而且是借用进行 Minor GC 的时候同步完成的，所以 G1 收集器在这个阶段实际并没有额外的停顿；</li><li>并发标记：从 GC Root 开始对堆中对象进行可达性分析，递归扫描整个堆里的对象图，找出要回收的对象，这阶段耗时较长，但可与用户程序并发执行。当对象图扫描完成以后，还要重新处理 SATB 记录下的在并发时有引用变动的对象；</li><li>最终标记：对用户线程做另一个短暂的暂停，用于处理并发阶段结束后仍遗留下来的最后那少量的 SATB 记录；</li><li>筛选回收：负责更新 Region 的统计数据，对各个 Region 的回收价值和成本进行排序，根据用户所期望的停顿时间来制定回收计划，可以自由选择任意多个 Region 构成回收集，然后把决定回收的那一部分 Region 的存活对象复制到空的 Region 中，再清理掉整个旧 Region 的全部空间。这里的操作涉及存活对象的移动，是必须暂停用户线程，由多条收集器线程并行完成的。</li></ul><p>G1 收集器除了并发标记外，其余阶段也是要完全暂停用户线程的，它并非纯粹地追求低延迟，目标是在延迟可控的情况下获得尽可能高的吞吐量。G1 不是仅仅面向低延迟，停顿用户线程能够最大幅度提高垃圾收集效率，为了保证吞吐量所以才选择了完全暂停用户线程的实现方案。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671993517640-0de2ea4b-a687-4161-b831-c290008888f2.png#averageHue=%23e9e9e8&clientId=u8af0c299-d289-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=162&id=u80d3d8d6&margin=%5Bobject%20Object%5D&name=3b33f2da-713f-4e35-b017-1643a64ecfe7.png&originHeight=192&originWidth=832&originalType=binary&ratio=1&rotation=0&showTitle=true&size=119436&status=done&style=none&taskId=ue8ecf88f-dbd1-4df8-be8e-6759ded5593&title=G1%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=702.6000366210938" alt="3b33f2da-713f-4e35-b017-1643a64ecfe7.png" title="G1 收集器运行示意图"><br />相比 CMS，G1 的优点有很多，暂且不论可以指定最大停顿时间、分 Region 的内存布局、按收益动态确定回收集这些创新性设计，单从最传统的算法理论上看，G1 也更有发展潜力。与 CMS 的“标记-清除”算法不同，G1 从整体来看是基于“标记-整理”算法实现的收集器，但从局部（两个 Region 之间）上看又是基于“标记-复制”算法实现，无论如何，这两种算法都意味着 G1 运作期间不会产生内存空间碎片，垃圾收集完成之后能提供规整的可用内存。这种特性有利于程序长时间运行，在程序为大对象分配内存时不容易因无法找到连续内存空间而提前触发下一次收集。<br />比起 CMS，G1 的弱项也有很多，如在用户程序运行过程中，G1 无论是为了垃圾收集产生的内存占用还是程序运行时的额外执行负载都要比 CMS 要高。</p><ul><li>就内存占用来说，虽然 G1 和 CMS 都使用卡表来处理跨代指针，但 G1 的卡表实现更为复杂，而且堆中每个 Region，无论扮演的是新生代还是老年代角色，都必须有一份卡表，这导致 G1 的记忆集可能会占更多的内存空间；相比起来 CMS 的卡表就相当简单，只有唯一一份，而且只需要处理老年代到新生代的引用，由于新生代的对象具有朝生夕灭的不稳定性，引用变化频繁，能省下这个区域的维护开销是很划算的；</li><li>在执行负载的角度上，同样由于两个收集器各自的细节实现特点导致了用户程序运行时的负载会有不同，譬如它们都使用到写屏障，CMS 用写后屏障来更新维护卡表；而 G1 除了使用写后屏障来进行同样的卡表维护操作外，为了实现原始快照搜索算法，还需要使用写前屏障来跟踪并发时的指针变化情况。相比起增量更新算法，原始快照搜索能够减少并发标记和重新标记阶段的消耗，避免 CMS 那样在最终标记阶段停顿时间过长的缺点，但是在用户程序运行过程中确实会产生由跟踪引用变化带来的额外负担。由于 G1 对写屏障的复杂操作要比 CMS 消耗更多的运算资源，所以 CMS 的写屏障实现是直接的同步操作，而 G1就不得不将其实现为类似于消息队列的结构，把写前屏障和写后屏障中要做的事情都放到队列里，然后再异步处理。</li></ul><p>在小内存应用上 CMS 的表现大概率仍然要会优于 G1，而在大内存应用上 G1 则大多能发挥其优势。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;https://cdn.nlark.com/yuque/0/2022/png/25368844/1671982780287-700ffa4f-2e0d-488f-9661-b0bd1075c8cb.png#averageHue=%23e2e2e2&amp;cli</summary>
+      
+    
+    
+    
+    <category term="深入理解Java虚拟机" scheme="http://example.com/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/"/>
+    
+    
+    <category term="垃圾回收" scheme="http://example.com/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>垃圾回收 垃圾收集算法</title>
+    <link href="http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/"/>
+    <id>http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/</id>
+    <published>2022-12-05T10:30:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="N3kC3"></a></p><h4 id="分代收集理论"><a href="#分代收集理论" class="headerlink" title="分代收集理论"></a>分代收集理论</h4><p>分代收集建立在两个分代假说之上：</p><ul><li>弱分代假说：绝大多数对象都是朝生夕灭的；</li><li>强分代假说：熬过越多次垃圾收集过程的对象就越难以消亡。</li></ul><p>常用垃圾收集器的设计原则：收集器应该将 Java 堆划分出不同的区域，然后将回收对象依据其年龄（年龄即对象熬过垃圾收集过程的次数）分配到不同的区域之中存储。如果一个区域中大多数对象都是朝生夕灭，难以熬过垃圾收集过程的话，那么把它们集中放在一起，每次回收时只关注如何保留少量存活而不是去标记那些大量将要被回收的对象，就能以较低代价回收到大量的空间；如果剩下的都是难以消亡的对象，那把它们集中放在一块，虚拟机便可以使用较低的频率来回收这个区域，这就同时兼顾了垃圾收集的时间开销和内存的空间有效利用。<br />在 Java 堆划分出不同的区域之后，垃圾收集器才可以每次只回收其中某一个或者某些部分的区域——因而才有了“Minor GC”“Major GC”“Full GC”这样的回收类型的划分；也才能够针对不同的区域安排与里面存储对象存亡特征相匹配的垃圾收集算法——因而发展出了“标记-复制算法”“标记-清除算法”“标记-整理算法”等针对性的垃圾收集算法。<br />假如要现在进行一次只局限于新生代区域内的收集（Minor GC），但新生代中的对象是完全有可能被老年代所引用的，为了找出该区域中的存活对象，不得不在固定的GC Roots 之外，再额外遍历整个老年代中所有对象来确保可达性分析结果的正确性，反过来也是一样。为了解决这个问题，就需要对分代收集理论添加第三条经验法则：<br />跨代引用假说：跨代引用相对于同代引用来说仅占极少数。存在互相引用关系的两个对象，是应该倾向于同时生存或者同时消亡的。举个例子，如果某个新生代对象存在跨代引用，由于老年代对象难以消亡，该引用会使得新生代对象在收集时同样得以存活，进而在年龄增长之后晋升到老年代中，这时跨代引用也随即被消除了。<br />依据这条假说，就不应再为了少量的跨代引用去扫描整个老年代，也不必浪费空间专门记录每一个对象是否存在及存在哪些跨代引用，只需在新生代上建立一个全局的数据结构（该结构被称为“记忆集”），这个结构把老年代划分成若干小块，标识出老年代的哪一块内存会存在跨代引用。此后当发生 Minor GC 时，只有包含了跨代引用的小块内存里的对象才会被加入到 GCRoots 进行扫描。虽然这种方法需要在对象改变引用关系时维护记录数据的正确性，会增加一些运行时的开销，但比起收集时扫描整个老年代来说仍然是划算的。<br />对于不同分代的名词定义：</p><ul><li>整堆收集（Full GC）：收集整个 Java 堆和方法区的垃圾收集；</li><li>部分收集（Partial GC）：指目标不是完整收集整个 Java 堆的垃圾收集，其中又分为：<ul><li>新生代收集（Minor GC&#x2F;Young GC）：指目标只是新生代的垃圾收集；</li><li>老年代收集（Major GC&#x2F;Old GC）：指目标只是老年代的垃圾收集；</li><li>混合收集（Mixed GC）：指目标是收集整个新生代以及部分老年代的垃圾收集。<br><a name="GOSUS"></a></li></ul></li></ul><h4 id="标记-清除算法"><a href="#标记-清除算法" class="headerlink" title="标记-清除算法"></a>标记-清除算法</h4><p>算法分为“标记”和“清除”两个阶段：首先标记出所有需要回收的对象，在标记完成后，统一回收掉所有被标记的对象，也可以标记存活的对象，统一回收所有未被标记的对象（标记过程就是对象是否属于垃圾的判定过程）。<br />它是最基础的收集算法，后续的收集算法大多都是以标记-清除算法为基础，对其缺点进行改进而得到的。它的主要缺点有两个：</p><ul><li>第一个是执行效率不稳定，如果 Java 堆中包含大量对象，而且其中大部分是需要被回收的，这时必须进行大量标记和清除的动作，导致标记和清除两个过程的执行效率都随对象数量增长而降低；</li><li>第二个是内存空间的碎片化问题，标记、清除之后会产生大量不连续的内存碎片，空间碎片太多可能会导致当以后在程序运行过程中需要分配较大对象时无法找到足够的连续内存而不得不提前触发另一次垃圾收集动作。</li></ul><p>标记-清除算法的执行过程如图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671895683018-2687af00-a9ba-4365-92b1-040da47b7a4e.png#averageHue=%23f9f9f7&clientId=ud815e535-598e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=266&id=ud7527960&margin=%5Bobject%20Object%5D&name=e048175d-9aa9-4891-976f-62259a6c0a81.png&originHeight=420&originWidth=806&originalType=binary&ratio=1&rotation=0&showTitle=true&size=68601&status=done&style=none&taskId=u19ccfeb4-66e7-4cf2-817c-7fc10198e35&title=%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95%E7%A4%BA%E6%84%8F%E5%9B%BE&width=509.79998779296875" alt="e048175d-9aa9-4891-976f-62259a6c0a81.png" title="标记-清除算法示意图"><br><a name="pQ2Ly"></a></p><h4 id="标记-复制算法"><a href="#标记-复制算法" class="headerlink" title="标记-复制算法"></a>标记-复制算法</h4><p>为了解决标记-清除算法面对大量可回收对象时执行效率低的问题，标记-复制算法将可用内存按容量划分为大小相等的两块，每次只使用其中的一块。当这一块的内存用完了，就将还存活着的对象复制到另外一块上面，然后再把已使用过的内存空间一次清理掉。如果内存中多数对象都是存活的，这种算法将会产生大量的内存间复制的开销，但对于多数对象都是可回收的情况，算法需要复制的就是占少数的存活对象，而且每次都是针对整个半区进行内存回收，分配内存时也就不用考虑有空间碎片的复杂情况，只要移动堆顶指针，按顺序分配即可。这样实现简单，运行高效，不过其缺陷也显而易见，这种复制回收算法的代价是将可用内存缩小为了原来的一半，空间浪费未免太多了一点。标记-复制算法的执行过程如图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671902590085-aa5e1f8d-26f6-4af8-8c3f-a3532ada021a.png#averageHue=%23ececec&clientId=u7d6366ef-b598-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=275&id=u1291a1c7&margin=%5Bobject%20Object%5D&name=8978628e-f073-49e4-bced-1873e2ecf39b.png&originHeight=430&originWidth=806&originalType=binary&ratio=1&rotation=0&showTitle=true&size=67209&status=done&style=none&taskId=u7c36a4a9-a9ff-4988-a08a-7e76cbbc7fc&title=%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95%E7%A4%BA%E6%84%8F%E5%9B%BE&width=514.8000183105469" alt="8978628e-f073-49e4-bced-1873e2ecf39b.png" title="标记-复制算法示意图"><br />新生代中的对象有98%熬不过第一轮收集。因此并不需要按照 1∶1 的比例来划分新生代的内存空间。<br />HotSpot 虚拟机的 Serial、ParNew 等新生代收集器均采用了“Appel 式回收”来设计新生代的内存布局。<br />Appel 式回收的具体做法是把新生代分为一块较大的 Eden 空间和两块较小的 Survivor 空间，每次分配内存只使用Eden 和其中一块 Survivor。发生垃圾搜集时，将 Eden 和 Survivor 中仍然存活的对象一次性复制到另外一块 Survivor 空间上，然后直接清理掉 Eden 和已用过的那块 Survivor空间。HotSpot 虚拟机默认 Eden 和Survivor 的大小比例是 8∶1，也即每次新生代中可用内存空间为整个新生代容量的 90%（Eden 的 80%加上一个 Survivor 的 10%），只有一个 Survivor 空间，即 10%的新生代是会被“浪费”的。<br />Appel 式回收还有一个充当罕见情况的“逃生门”的安全设计，当Survivor 空间不足以容纳一次 Minor GC 之后存活的对象时，就需要依赖其他内存区域（实际上大多就是老年代）进行分配担保。如果另外一块 Survivor 空间没有足够空间存放上一次新生代收集下来的存活对象，这些对象便将通过分配担保机制直接进入老年代，这对虚拟机来说就是安全的。<br />标记-复制算法在对象存活率较高时就要进行较多的复制操作，效率将会降低。更关键的是，如果不想浪费 50%的空间，就需要有额外的空间进行分配担保，以应对被使用的内存中所有对象都 100%存活的极端情况，所以在老年代一般不能直接选用这种算法。<br><a name="UG8Cs"></a></p><h4 id="标记-整理算法"><a href="#标记-整理算法" class="headerlink" title="标记-整理算法"></a>标记-整理算法</h4><p>针对老年代对象的存亡特征，采用“标记-整理”算法，其中的标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向内存空间一端移动，然后直接清理掉边界以外的内存，“标记-整理”算法的示意图所示。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671981746010-e8c2a4d6-5a91-4ef5-adda-c811ea9def2b.png#averageHue=%23f8f7f5&clientId=u7d6366ef-b598-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=274&id=ub94a4fe7&margin=%5Bobject%20Object%5D&name=f2d1ccd4-c9ec-4ad6-a882-d268727ae529.png&originHeight=421&originWidth=810&originalType=binary&ratio=1&rotation=0&showTitle=true&size=67190&status=done&style=none&taskId=u28d63b43-77a1-4f57-8415-ce4ba041c46&title=%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95%E7%A4%BA%E6%84%8F%E5%9B%BE&width=527" alt="f2d1ccd4-c9ec-4ad6-a882-d268727ae529.png" title="标记-整理算法示意图"><br />标记-清除算法与标记-整理算法的本质差异在于前者是一种非移动式的回收算法，而后者是移动式的。是否移动回收后的存活对象是一项优缺点并存的风险决策：</p><ul><li>如果移动存活对象，尤其是在老年代这种每次回收都有大量对象存活区域，移动存活对象并更新所有引用这些对象的地方将会是一种极为负重的操作，而且这种对象移动操作必须全程暂停用户应用程序才能进行。</li><li>但如果跟标记-清除算法那样完全不考虑移动和整理存活对象的话，弥散于堆中的存活对象导致的空间碎片化问题就只能依赖更为复杂的内存分配器和内存访问器来解决。内存的访问是用户程序最频繁的操作，假如在这个环节上增加了额外的负担，势必会直接影响应用程序的吞吐量。</li></ul><p>是否移动对象都存在弊端，移动则内存回收时会更复杂，不移动则内存分配时会更复杂。反映到垃圾收集器上看，HotSpot 虚拟机里面关注吞吐量的 Parallel Scavenge 收集器是基于标记-整理算法的，而关注延迟的 CMS 收集器则是基于标记-清除算法的。<br />还有一种“和稀泥式”解决方案可以不在内存分配和访问上增加太大额外负担，做法是让虚拟机平时多数时间都采用标记-清除算法，暂时容忍内存碎片的存在，直到内存空间的碎片化程度已经大到影响对象分配时，再采用标记-整理算法收集一次，以获得规整的内存空间。基于标记-清除算法的 CMS 收集器面临空间碎片过多时采用的就是这种处理办法。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;N3kC3&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;分代收集理论&quot;&gt;&lt;a href=&quot;#分代收集理论&quot; class=&quot;headerlink&quot; title=&quot;分代收集理论&quot;&gt;&lt;/a&gt;分代收集理论&lt;/h4&gt;&lt;p&gt;分代收集建立在两个分代假说之上：&lt;/p&gt;
+&lt;ul&gt;
+</summary>
+      
+    
+    
+    
+    <category term="深入理解Java虚拟机" scheme="http://example.com/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/"/>
+    
+    
+    <category term="垃圾回收" scheme="http://example.com/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>垃圾回收 判断可回收对象</title>
+    <link href="http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E5%88%A4%E6%96%AD%E5%8F%AF%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%20%E5%88%A4%E6%96%AD%E5%8F%AF%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1/</id>
+    <published>2022-12-05T10:20:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>在堆里面存放着 Java 中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，哪些已经“死去”（“死去”即不可能再被任何途径使用的对象）了。<br><a name="hK9OE"></a></p><h4 id="引用计数算法"><a href="#引用计数算法" class="headerlink" title="引用计数算法"></a>引用计数算法</h4><p>在对象中添加一个引用计数器，每当有一个地方引用它时，计数器值就加一；当引用失效时，计数器值就减一；任何时刻计数器为零的对象就是不可能再被使用的。<br />引用计数算法虽然占用了一些额外的内存空间来进行计数，但它的原理简单，判定效率也很高，在大多数情况下它都是一个不错的算法。但是主流的 Java 虚拟机里面都没有选用引用计数算法来管理内存，主要原因是，这个看似简单的算法有很多例外情况要考虑，必须要配合大量额外处理才能保证正确地工作，譬如单纯的引用计数就很难解决对象之间相互循环引用的问题。<br />对象 objA 和 objB 都有字段 instance，赋值令 objA.instance&#x3D;objB 及 objB.instance&#x3D;objA，除此之外，这两个对象再无任何引用，实际上这两个对象已经不可能再被访问，但是它们因为互相引用着对方，导致它们的引用计数都不为零，引用计数算法也就无法回收它们。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReferenceCountingGC</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">testGC</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objA</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        <span class="type">ReferenceCountingGC</span> <span class="variable">objB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCountingGC</span>();</span><br><span class="line">        objA.instance = objB;</span><br><span class="line">        objB.instance = objA;</span><br><span class="line">        objA = <span class="literal">null</span>;</span><br><span class="line">        objB = <span class="literal">null</span>;</span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p><a name="YNokJ"></a></p><h4 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h4><p>主流程序语言的内存管理子系统，都是通过可达性分析算法来判定对象是否存活的。基本思路就是通过一系列称为“GC Roots”的根对象作为起始节点集，从这些节点开始，根据引用关系向下搜索，搜索过程所走过的路径称为“引用链”，如果某个对象到 GC Roots 间没有任何引用链相连，或者用图论的话来说就是从 GC Roots 到这个对象不可达时，则证明此对象是不可能再被使用的。<br />对象 object 5、object 6、object 7 虽然互有关联，但是它们到 GC Roots 是不可达的，因此它们将会被判定为可回收的对象。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671891752678-519467c3-ea34-42f8-9bd0-d6700a1ace57.png#averageHue=%23f4f4f4&clientId=uf2110dc6-499e-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=320&id=u5b10f8d7&margin=%5Bobject%20Object%5D&name=9d2374dd-edb4-4589-9ac0-530236fee3a9.png&originHeight=533&originWidth=810&originalType=binary&ratio=1&rotation=0&showTitle=true&size=95928&status=done&style=none&taskId=u3b1a99cd-038e-4bfa-b9b7-3e3728733a1&title=%E5%88%A9%E7%94%A8%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90%E7%AE%97%E6%B3%95%E5%88%A4%E5%AE%9A%E5%AF%B9%E8%B1%A1%E6%98%AF%E5%90%A6%E5%8F%AF%E5%9B%9E%E6%94%B6&width=487" alt="9d2374dd-edb4-4589-9ac0-530236fee3a9.png" title="利用可达性分析算法判定对象是否可回收"><br />在 Java 里，固定可作为 GC Roots 的对象包括以下几种：</p><ul><li>在虚拟机栈中引用的对象，譬如各个线程被调用的方法堆栈中使用到的参数、局部变量、临时变量等；</li><li>在方法区中类静态属性引用的对象，譬如 Java 类的引用类型静态变量；</li><li>在方法区中常量引用的对象，譬如字符串常量池（String Table）里的引用；</li><li>在本地方法栈中 JNI（即通常所说的 Native 方法）引用的对象；</li><li>Java 虚拟机内部的引用，如基本数据类型对应的 Class 对象，一些常驻的异常对象等，还有系统类加载器；</li><li>所有被同步锁（synchronized 关键字）持有的对象；</li><li>反映 Java 虚拟机内部情况的 JMXBean、JVMTI 中注册的回调、本地代码缓存等。</li></ul><p>除了这些固定的 GC Roots 集合以外，根据用户所选用的垃圾收集器以及当前回收的内存区域不同，还可以有其他对象“临时性”地加入，共同构成完整 GC Roots 集合，才能保证可达性分析的正确性。<br><a name="gimjQ"></a></p><h4 id="引用"><a href="#引用" class="headerlink" title="引用"></a>引用</h4><p>希望能描述一类对象：当内存空间还足够时，能保留在内存之中，如果内存空间在进行垃圾收集后仍然非常紧张，那就可以抛弃这些对象——很多系统的缓存功能都符合这样的应用场景。<br />引用分为强引用（Strongly Reference）、软引用（Soft Reference）、弱引用（Weak Reference）和虚引用（Phantom Reference）4 种，这 4 种引用强度依次逐渐减弱。</p><ul><li>强引用是指在程序代码之中普遍存在的引用赋值，即类似“Object obj&#x3D;new Object()”这种引用关系。无论任何情况下，只要强引用关系还存在，垃圾收集器就永远不会回收掉被引用的对象；</li><li>软引用是用来描述一些还有用，但非必须的对象。只被软引用关联着的对象，在系统将要发生内存溢出异常前，会把这些对象列进回收范围之中进行第二次回收，如果这次回收还没有足够的内存，才会抛出内存溢出异常；</li><li>弱引用也是用来描述那些非必须对象，但是它的强度比软引用更弱一些，被弱引用关联的对象只能生存到下一次垃圾收集发生为止。当垃圾收集器开始工作，无论当前内存是否足够，都会回收掉只被弱引用关联的对象；</li><li>虚引用也称为“幽灵引用”或者“幻影引用”，它是最弱的一种引用关系。一个对象是否有虚引用的存在，完全不会对其生存时间构成影响，也无法通过虚引用来取得一个对象实例。为一个对象设置虚引用关联的唯一目的只是为了能在这个对象被收集器回收时收到一个系统通知。<br><a name="Aaeb0"></a></li></ul><h4 id="生存还是死亡"><a href="#生存还是死亡" class="headerlink" title="生存还是死亡"></a>生存还是死亡</h4><p>即使在可达性分析算法中判定为不可达的对象，也不是“非死不可”的，这时候它们暂时还处于“缓刑”阶段，要真正宣告一个对象死亡，至少要经历两次标记过程：如果对象在进行可达性分析后发现没有与 GC Roots 相连接的引用链，那它将会被第一次标记，随后进行一次筛选，筛选的条件是此对象是否有必要执行 finalize()方法。假如对象没有覆盖 finalize()方法，或者 finalize()方法已经被虚拟机调用过，那么虚拟机将这两种情况都视为“没有必要执行”。<br />如果这个对象被判定为确有必要执行 finalize()方法，那么该对象将会被放置在一个名为 F-Queue 的队列之中，并在稍后由一条由虚拟机自动建立的、低调度优先级的Finalizer 线程去执行它们的 finalize() 方法。finalize()方法是对象逃脱死亡命运的最后一次机会，稍后收集器将对 F-Queue 中的对象进行第二次小规模的标记，如果对象要在 finalize()中成功拯救自己——只要重新与引用链上的任何一个对象建立关联即可，譬如把自己（this 关键字）赋值给某个类变量或者对象的成员变量，那在第二次标记时它将被移出“即将回收”的集合；如果对象这时候还没有逃脱，那基本上它就真的要被回收了。<br />任何一个对象的 finalize()方法都只会被系统自动调用一次，如果对象面临下一次回收，它的 finalize()方法不会被再次执行，因此自救行动会失败。<br><a name="XCDvd"></a></p><h4 id="回收方法区"><a href="#回收方法区" class="headerlink" title="回收方法区"></a>回收方法区</h4><p>方法区垃圾收集的“性价比”通常也是比较低的：在 Java堆中，尤其是在新生代中，对常规应用进行一次垃圾收集通常可以回收 70%至 99%的内存空间，相比之下，方法区回收囿于苛刻的判定条件，其区域垃圾收集的回收成果往往远低于此。<br />方法区的垃圾收集主要回收两部分内容：废弃的常量和不再使用的类型。判定一个常量是否“废弃”还是相对简单，而要判定一个类型是否属于“不再被使用的类”的条件就比较苛刻了。需要同时满足下面三个条件：</p><ul><li>该类所有的实例都已经被回收，也就是 Java 堆中不存在该类及其任何派生子类的实例；</li><li>加载该类的类加载器已经被回收；</li><li>该类对应的 java.lang.Class 对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;在堆里面存放着 Java 中几乎所有的对象实例，垃圾收集器在对堆进行回收前，第一件事情就是要确定这些对象之中哪些还“存活”着，哪些已经“死去”（“死去”即不可能再被任何途径使用的对象）了。&lt;br&gt;&lt;a name=&quot;hK9OE&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;引用计数算法</summary>
+      
+    
+    
+    
+    <category term="深入理解Java虚拟机" scheme="http://example.com/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/"/>
+    
+    
+    <category term="垃圾回收" scheme="http://example.com/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Java基础 String 不可变性</title>
+    <link href="http://example.com/2022/12/05/Java%E5%9F%BA%E7%A1%80%20String%20%E4%B8%8D%E5%8F%AF%E5%8F%98%E6%80%A7/"/>
+    <id>http://example.com/2022/12/05/Java%E5%9F%BA%E7%A1%80%20String%20%E4%B8%8D%E5%8F%AF%E5%8F%98%E6%80%A7/</id>
+    <published>2022-12-05T10:10:00.000Z</published>
+    <updated>2023-01-09T18:38:16.282Z</updated>
+    
+    <content type="html"><![CDATA[<p>字符串是一个常量，一旦创建了一个 String 对象，就无法改变它的值，它的内容也就不可能发生变化。<br />给字符串赋值后再尝试给它赋一个新值，看上去好像是改变了字符串的值，但其背后实际上是新建了一个新的字符串，并且引用指向这个新创建出来的字符串，原来的字符串对象保持不变。<br><a name="xdNaa"></a></p><h4 id="具备不变性的原因"><a href="#具备不变性的原因" class="headerlink" title="具备不变性的原因"></a>具备不变性的原因</h4><p>private final 的 char 数组，数组名字叫 value。存储着字符串的每一位字符，被 final 修饰 代表一旦被赋值，引用就不能修改了，除了构造函数之外，并没有任何其他方法会修改 value 数组里面的内容，而且 value 的权限是 private，外部的类也访问不到，所以最终使得 value 是不可变的。<br /> String 类被 final 修饰，所以这个 String 类是不会被继承的，因此不可以通过扩展或者覆盖行为来破坏 String 类的不变性。<br><a name="BjW04"></a></p><h4 id="不可变的好处"><a href="#不可变的好处" class="headerlink" title="不可变的好处"></a>不可变的好处</h4><p><a name="LJHhX"></a></p><h5 id="字符串常量池"><a href="#字符串常量池" class="headerlink" title="字符串常量池"></a>字符串常量池</h5><p>在 Java 中有字符串常量池的概念，比如两个字符串变量的内容一样，那么就会指向同一个对象，而不需创建第二个同样内容的新对象。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671626167176-92c51fa4-6916-4658-8f38-c78a021108a4.png#averageHue=%23100a09&clientId=u10ec54bb-37a7-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=270&id=ue1c5d25b&margin=%5Bobject%20Object%5D&name=1593855401583-02b4fa45-d9ee-4cf6-b7c6-0a31d2f9a888.png&originHeight=603&originWidth=1073&originalType=binary&ratio=1&rotation=0&showTitle=false&size=69708&status=done&style=none&taskId=ua199203d-2af4-48f7-88d9-d3fea357aed&title=&width=480" alt="1593855401583-02b4fa45-d9ee-4cf6-b7c6-0a31d2f9a888.png"><br />左边这两个引用都指向常量池中的同一个“lagou”，正是因为这样的机制，再加上 String 在程序中的应用是如此广泛，可以节省大量的内存空间。<br />如果想利用常量池这个特性，String 必须具备不可变的性质，不变性使得不同的字符串之间不会相互影响。<br><a name="OhloF"></a></p><h5 id="用作-HashMap-的-key"><a href="#用作-HashMap-的-key" class="headerlink" title="用作 HashMap 的 key"></a>用作 HashMap 的 key</h5><p>通常建议把不可变对象作为 HashMap 的 key，比如 String 就很合适作为 HashMap 的 key。<br />对于 key 来说，最重要的要求就是它是不可变的，这样才能利用它去检索存储在 HashMap 里面的 value。由于 HashMap 的工作原理是 Hash，也就是散列，所以需要对象始终拥有相同的 Hash 值才能正常运行。如果 String 是可变的，这会带来很大的风险，因为一旦 String 对象里面的内容变了，那么 Hash 码自然就应该跟着变了，若再用这个 key 去查找的话，就找不回之前那个 value 了。<br><a name="GQnnj"></a></p><h5 id="缓存-HashCode"><a href="#缓存-HashCode" class="headerlink" title="缓存 HashCode"></a>缓存 HashCode</h5><p>在 Java 中经常会用到字符串的 HashCode，因为 String 是不可变的，所以对象一旦被创建之后，HashCode 的值也就不可能变化了，就可以把 HashCode 缓存起来。这样的话，以后每次想要用到 HashCode 的时候，不需要重新计算，直接返回缓存过的 hash 的值就可以了，因为它不会变，这样可以提高效率。<br><a name="Ed2Cn"></a></p><h5 id="线程安全"><a href="#线程安全" class="headerlink" title="线程安全"></a>线程安全</h5><p>因为具备不变性的对象一定是线程安全的，不需要对其采取任何额外的措施，就可以天然保证线程安全。由于 String 是不可变的，所以它就可以非常安全地被多个线程所共享，这对于多线程编程而言非常重要，避免了很多不必要的同步操作。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;字符串是一个常量，一旦创建了一个 String 对象，就无法改变它的值，它的内容也就不可能发生变化。&lt;br /&gt;给字符串赋值后再尝试给它赋一个新值，看上去好像是改变了字符串的值，但其背后实际上是新建了一个新的字符串，并且引用指向这个新创建出来的字符串，原来的字符串对象保持不</summary>
+      
+    
+    
+    
+    <category term="Java基础" scheme="http://example.com/categories/Java%E5%9F%BA%E7%A1%80/"/>
+    
+    
+    <category term="Java基础" scheme="http://example.com/tags/Java%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>内存区域 虚拟机对象</title>
+    <link href="http://example.com/2022/12/05/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E8%B1%A1/"/>
+    <id>http://example.com/2022/12/05/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%AF%B9%E8%B1%A1/</id>
+    <published>2022-12-05T10:10:00.000Z</published>
+    <updated>2023-01-09T18:38:16.282Z</updated>
+    
+    <content type="html"><![CDATA[<p>HotSpot 虚拟机在 Java 堆中对象分配、布局和访问的全过程。<br><a name="QTtBO"></a></p><h4 id="对象的创建"><a href="#对象的创建" class="headerlink" title="对象的创建"></a>对象的创建</h4><p>当 Java 虚拟机遇到一条字节码 new 指令时，首先将去检查这个指令的参数是否能在常量池中定位到一个类的符号引用，并且检查这个符号引用代表的类是否已被加载、解析和初始化过。如果没有，那必须先执行相应的类加载过程。<br />在类加载检查通过后，接下来虚拟机将为新生对象分配内存。对象所需内存的大小在类加载完成后便可完全确定，为对象分配空间的任务实际上便等同于把一块确定大小的内存块从 Java 堆中划分出来。</p><ul><li>如果 Java 堆中内存是绝对规整的，所有被使用过的内存都被放在一边，空闲的内存被放在另一边，中间放着一个指针作为分界点的指示器，那所分配内存就仅仅是把那个指针向空闲空间方向挪动一段与对象大小相等的距离，这种分配方式称为“指针碰撞”。</li><li>如果 Java 堆中的内存并不是规整的，已被使用的内存和空闲的内存相互交错在一起，那就没有办法简单地进行指针碰撞了，虚拟机就必须维护一个列表，记录上哪些内存块是可用的，在分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的记录，这种分配方式称为“空闲列表”。</li></ul><p>选择哪种分配方式由 Java 堆是否规整决定，而 Java 堆是否规整又由所采用的垃圾收集器是否带有空间压缩整理的能力决定。当使用 Serial、ParNew 等带压缩整理过程的收集器时，系统采用的分配算法是指针碰撞，既简单又高效；而当使用 CMS 这种基于清除算法的收集器时，理论上就只能采用较为复杂的空闲列表来分配内存。<br />对象创建在虚拟机中是非常频繁的行为，即使仅仅修改一个指针所指向的位置，在并发情况下也并不是线程安全的，可能出现正在给对象 A 分配内存，指针还没来得及修改，对象 B 又同时使用了原来的指针来分配内存的情况。解决这个问题有两种可选方案：</p><ul><li>一种是对分配内存空间的动作进行同步处理——实际上虚拟机是采用 CAS 配上失败重试的方式保证更新操作的原子性；</li><li>另外一种是把内存分配的动作按照线程划分在不同的空间之中进行，即每个线程在 Java 堆中预先分配一小块内存，称为本地线程分配缓冲（TLAB）哪个线程要分配内存，就在哪个线程的本地缓冲区中分配，只有本地缓冲区用完了，分配新的缓存区时才需要同步锁定。</li></ul><p>内存分配完成之后，虚拟机必须将分配到的内存空间（但不包括对象头）都初始化为零值，如果使用了 TLAB 的话，这一项工作也可以提前至 TLAB 分配时顺便进行。这步操作保证了对象的实例字段在 Java 代码中可以不赋初始值就直接使用，使程序能访问到这些字段的数据类型所对应的零值。<br />接下来，Java 虚拟机还要对对象进行必要的设置，例如这个对象是哪个类的实例、如何才能找到类的元数据信息、对象的哈希码、对象的 GC 分代年龄等信息。这些信息存放在对象的对象头之中。根据虚拟机当前运行状态的不同，如是否启用偏向锁等，对象头会有不同的设置方式。<br />在上面工作都完成之后，从虚拟机的视角来看，一个新的对象已经产生了。但是从Java 程序的视角看来，对象创建才刚刚开始——构造函数，即 Class 文件中的<init>()方法还没有执行，所有的字段都为默认的零值，对象需要的其他资源和状态信息也还没有按照预定的意图构造好。一般来说（由字节码流中 new 指令后面是否跟随invokespecial指令所决定，Java 编译器会在遇到 new 关键字的地方同时生成这两条字节码指令，但如果直接通过其他方式产生的则不一定如此），new 指令之后会接着执行<init> ()方法，按照程序员的意愿对对象进行初始化，这样一个真正可用的对象才算完全被构造出来。<br><a name="QS8xG"></a></p><h4 id="对象内存格式"><a href="#对象内存格式" class="headerlink" title="对象内存格式"></a>对象内存格式</h4><p>在 HotSpot 虚拟机里，对象在堆内存中的存储布局可以划分为三个部分：对象头（Header）、实例数据（Instance Data）和对齐填充（Padding）。<br />对象的对象头部分包括两类信息：</p><ul><li>第一类是用于存储对象自身的运行时数据，如哈希码（HashCode）、GC 分代年龄、锁状态标志、线程持有的锁、偏向线程 ID、偏向时间戳等，这部分数据的长度在 32 位和 64 位的虚拟机中分别为 32 个比特和 64 个比特，官方称它为“Mark Word”；</li><li>对象头的另外一部分是类型指针，即对象指向它的类型元数据的指针，Java 虚拟机通过这个指针来确定该对象是哪个类的实例。此外，如果对象是一个 Java 数组，那在对象头中还必须有一块用于记录数组长度的数据，因为虚拟机可以通过普通 Java 对象的元数据信息确定Java 对象的大小，但是如果数组的长度是不确定的，将无法通过元数据中的信息推断出数组的大小。</li></ul><p>实例数据部分是对象真正存储的有效信息，即在程序代码里面所定义的各种类型的字段内容，无论是从父类继承下来的，还是在子类中定义的字段都必须记录起来。这部分的存储顺序会受到虚拟机分配策略参数和字段在 Java 源码中定义顺序的影响。<br />对齐填充并不是必然存在的，也没有特别的含义，它仅仅起着占位符的作用。由于 HotSpot 虚拟机的自动内存管理系统要求对象起始地址必须是 8字节的整数倍，换句话说就是任何对象的大小都必须是 8 字节的整数倍。对象头部分已经被精心设计成正好是 8 字节的倍数，因此，如果对象实例数据部分没有对齐的话，就需要通过对齐填充来补全。<br><a name="x7ff5"></a></p><h4 id="对象访问定位"><a href="#对象访问定位" class="headerlink" title="对象访问定位"></a>对象访问定位</h4><p>Java 程序会通过栈上的 reference 数据来操作堆上的具体对象。由于 reference 类型在《规范》里面只规定了它是一个指向对象的引用，并没有定义这个引用应该通过什么方式去定位、访问到堆中对象的具体位置，所以对象访问方式也是由虚拟机实现而定的，主流的访问方式主要有使用句柄和直接指针两种：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671889609213-61d4e5fd-b76f-424b-ba4f-93529443fc3a.png#averageHue=%23f3f3f3&clientId=u06dc10ef-de29-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=288&id=u7602c4e5&margin=%5Bobject%20Object%5D&name=%E9%80%9A%E8%BF%87%E5%8F%A5%E6%9F%84%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png&originHeight=363&originWidth=773&originalType=binary&ratio=1&rotation=0&showTitle=false&size=105738&status=done&style=none&taskId=u7261e84b-61fd-4313-af53-73ad7c64e9e&title=&width=613" alt="通过句柄访问对象.png"><br />如果使用句柄访问的话，Java 堆中将可能会划分出一块内存来作为句柄池，reference 中存储的就是对象的句柄地址，而句柄中包含了对象实例数据与类型数据各自具体的地址信息。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671889626586-4548edee-558d-4719-803a-75aeddee0969.png#averageHue=%23f4f4f4&clientId=u06dc10ef-de29-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=291&id=u4b160ce7&margin=%5Bobject%20Object%5D&name=%E9%80%9A%E8%BF%87%E7%9B%B4%E6%8E%A5%E6%8C%87%E9%92%88%E8%AE%BF%E9%97%AE%E5%AF%B9%E8%B1%A1.png&originHeight=356&originWidth=748&originalType=binary&ratio=1&rotation=0&showTitle=false&size=97428&status=done&style=none&taskId=ucb0c18d3-35db-4f00-9849-74a24a18054&title=&width=612" alt="通过直接指针访问对象.png"><br />如果使用直接指针访问的话，Java 堆中对象的内存布局就必须考虑如何放置访问类型数据的相关信息，reference 中存储的直接就是对象地址，如果只是访问对象本身的话，就不需要多一次间接访问的开销。<br />这两种对象访问方式各有优势：</p><ul><li>使用句柄来访问的最大好处就是 reference 中存储的是稳定句柄地址，在对象被移动（垃圾收集时移动对象是非常普遍的行为）时只会改变句柄中的实例数据指针，而 reference 本身不需要被修改；</li><li>使用直接指针来访问最大的好处就是速度更快，它节省了一次指针定位的时间开销，由于对象访问在 Java 中非常频繁，因此这类开销积少成多也是一项极为可观的执行成本。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;HotSpot 虚拟机在 Java 堆中对象分配、布局和访问的全过程。&lt;br&gt;&lt;a name=&quot;QTtBO&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;对象的创建&quot;&gt;&lt;a href=&quot;#对象的创建&quot; class=&quot;headerlink&quot; title=&quot;对象的创建&quot;&gt;&lt;/a&gt;对象的创</summary>
+      
+    
+    
+    
+    <category term="深入理解Java虚拟机" scheme="http://example.com/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/"/>
+    
+    
+    <category term="内存区域" scheme="http://example.com/tags/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Java基础 final 关键字</title>
+    <link href="http://example.com/2022/12/05/Java%E5%9F%BA%E7%A1%80%20final%20%E5%85%B3%E9%94%AE%E5%AD%97/"/>
+    <id>http://example.com/2022/12/05/Java%E5%9F%BA%E7%A1%80%20final%20%E5%85%B3%E9%94%AE%E5%AD%97/</id>
+    <published>2022-12-05T10:00:00.000Z</published>
+    <updated>2023-01-09T18:38:16.282Z</updated>
+    
+    <content type="html"><![CDATA[<p>final 的作用意味着“这是无法改变的”。final 一共有三种用法，它可以用来修饰变量、方法或者类，而且在修饰不同的地方时，效果、含义和侧重点也会有所不同。<br><a name="ntmO2"></a></p><h4 id="修饰变量"><a href="#修饰变量" class="headerlink" title="修饰变量"></a>修饰变量</h4><p>final 修饰变量意味着这个变量一旦被赋值就不能被修改了，如果尝试对一个已经赋值过 final 的变量再次赋值，就会报编译错误。<br><a name="ftAiA"></a></p><h5 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h5><p>第一个目的是出于设计角度去考虑的，比如希望创建一个一旦被赋值就不能改变的量，那么就可以使用 final 关键字。比如声明常量的时候，通常都是带 final 的。<br />第二个目的是从线程安全的角度去考虑的。不可变的对象天生就是线程安全的，所以不需要额外进行同步等处理，这些开销是没有的。如果 final 修饰的是基本数据类型，那么它自然就具备了不可变这个性质，所以自动保证了线程安全。<br><a name="BvyUv"></a></p><h5 id="赋值时机"><a href="#赋值时机" class="headerlink" title="赋值时机"></a>赋值时机</h5><p><a name="uSMzu"></a></p><h6 id="成员变量"><a href="#成员变量" class="headerlink" title="成员变量"></a>成员变量</h6><p>类中的非 static 修饰的属性；</p><ol><li>在声明变量的等号右边直接赋值；</li><li>在构造函数中赋值；</li><li>在类的构造代码块中赋值（不常用）。</li></ol><p>必须从中挑一种来完成对 final 变量的赋值。<br />空白 final：如果声明了 final 变量之后，并没有立刻在等号右侧对它赋值，这种情况就被称为“空白 final”。这样做的好处在于增加了 final 变量的灵活性，比如可以在构造函数中根据不同的情况，对 final 变量进行不同的赋值，这样的话，被 final 修饰的变量就不会变得死板，同时又能保证在赋值后保持不变。<br><a name="nmSzZ"></a></p><h6 id="静态变量"><a href="#静态变量" class="headerlink" title="静态变量"></a>静态变量</h6><p>类中的被 static 修饰的属性；</p><ol><li>在声明变量的等号右边直接赋值；</li><li>在一个静态的 static 初始代码块中赋值。<br><a name="HdapI"></a></li></ol><h6 id="局部变量"><a href="#局部变量" class="headerlink" title="局部变量"></a>局部变量</h6><p>方法中的变量。</p><ol><li>在使用之前必须对它进行赋值即可。<br><a name="duz8C"></a></li></ol><h6 id="特殊用法：final-修饰参数"><a href="#特殊用法：final-修饰参数" class="headerlink" title="特殊用法：final 修饰参数"></a>特殊用法：final 修饰参数</h6><p>关键字 final 还可以用于修饰方法中的参数。在方法的参数列表中是可以把参数声明为 final 的，这意味着没有办法在方法内部对这个参数进行修改。<br><a name="SDlri"></a></p><h4 id="修饰方法"><a href="#修饰方法" class="headerlink" title="修饰方法"></a>修饰方法</h4><p>final 修饰的方法不可以被重写，不能被 override，意味着任何继承类都不能修改这个方法的含义。<br />构造方法不允许被 final 修饰。<br><a name="Iv5QY"></a></p><h4 id="修饰类"><a href="#修饰类" class="headerlink" title="修饰类"></a>修饰类</h4><p>final 修饰的类不可以被继承，意味着不可能有子类的出现，这在一定程度上可以保证线程安全。<br />比如非常经典的 String 类就是被 final 修饰的，这对于保证 String 的不可变性是很重要的。<br><a name="oIIZo"></a></p><h4 id="为什么加了-final-却依然无法拥有不变性？"><a href="#为什么加了-final-却依然无法拥有不变性？" class="headerlink" title="为什么加了 final 却依然无法拥有不变性？"></a>为什么加了 final 却依然无法拥有不变性？</h4><p>不变性：如果对象在被创建之后，其状态就不能修改了，那么它就具备“不变性”。<br />用 final 去修饰一个指向对象类型（而不是指向 8 种基本数据类型）的变量时候，那么 final 起到的作用只是保证这个变量的引用不可变，而对象本身的内容依然是可以变化的。<br />关键字 final 可以确保变量的引用保持不变，但是不变性意味着对象一旦创建完毕就不能改变其状态，它强调的是对象内容本身，而不是引用，所以 final 和不变性这两者是很不一样的。<br />对于一个类的对象而言，必须要保证它创建之后所有内部状态（包括它的成员变量的内部属性等）永远不变，才是具有不变性的，这就要求所有成员变量的状态都不允许发生变化。<br />不变性并不意味着，简单地使用 final 修饰所有类的属性，这个类的对象就具备不变性了。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;final 的作用意味着“这是无法改变的”。final 一共有三种用法，它可以用来修饰变量、方法或者类，而且在修饰不同的地方时，效果、含义和侧重点也会有所不同。&lt;br&gt;&lt;a name=&quot;ntmO2&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;修饰变量&quot;&gt;&lt;a href=&quot;#修饰变量</summary>
+      
+    
+    
+    
+    <category term="Java基础" scheme="http://example.com/categories/Java%E5%9F%BA%E7%A1%80/"/>
+    
+    
+    <category term="Java基础" scheme="http://example.com/tags/Java%E5%9F%BA%E7%A1%80/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>内存区域 运行时数据区域</title>
+    <link href="http://example.com/2022/12/05/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%20%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F/"/>
+    <id>http://example.com/2022/12/05/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F%20%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA%E5%9F%9F/</id>
+    <published>2022-12-05T10:00:00.000Z</published>
+    <updated>2023-01-09T18:38:16.282Z</updated>
+    
+    <content type="html"><![CDATA[<p>Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。这些区域有各自的用途，以及创建和销毁的时间，有的区域随着虚拟机进程的启动而一直存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。Java 虚拟机所管理的内存将会包括以下几个运行时数据区域：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671817490387-ef22f775-8054-4dc4-b506-e7f59c4259a1.png#averageHue=%23fbfbf9&clientId=u472032d5-cd84-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=375&id=uf2d8d7d8&margin=%5Bobject%20Object%5D&name=2c4c9d28-3e69-4d0e-94c6-2e3e71cf6f2b.png&originHeight=542&originWidth=682&originalType=binary&ratio=1&rotation=0&showTitle=true&size=165242&status=done&style=none&taskId=u9ce47227-e073-4298-b674-ff219d94a27&title=Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E8%BF%90%E8%A1%8C%E6%97%B6%E6%95%B0%E6%8D%AE%E5%8C%BA&width=471.6000061035156" alt="2c4c9d28-3e69-4d0e-94c6-2e3e71cf6f2b.png" title="Java 虚拟机运行时数据区"><br><a name="Hhhz5"></a></p><h4 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h4><p>程序计数器是一块较小的内存空间，它可以看作是当前线程所执行的字节码的行号指示器。在 Java 虚拟机的概念模型里，字节码解释器工作时就是通过改变这个计数器的值来选取下一条需要执行的字节码指令，它是程序控制流的指示器，分支、循环、跳转、异常处理、线程恢复等基础功能都需要依赖这个计数器来完成。<br />由于 Java 虚拟机的多线程是通过线程轮流切换、分配处理器执行时间的方式来实现的，在任何一个确定的时刻，一个处理器（对于多核处理器来说是一个内核）都只会执行一条线程中的指令。因此，为了线程切换后能恢复到正确的执行位置，每条线程都需要有一个独立的程序计数器，各条线程之间计数器互不影响，独立存储，我们称这类内存区域为“线程私有”的内存。<br />如果线程正在执行的是一个 Java 方法，这个计数器记录的是正在执行的虚拟机字节码指令的地址；如果正在执行的是本地（Native）方法，这个计数器值则应为空（Undefined）。此内存区域是唯一一个在《Java 虚拟机规范》中没有规定任何OutOfMemoryError 情况的区域。<br><a name="fhGtu"></a></p><h4 id="Java-虚拟机栈"><a href="#Java-虚拟机栈" class="headerlink" title="Java 虚拟机栈"></a>Java 虚拟机栈</h4><p>与程序计数器一样，Java 虚拟机栈也是线程私有的，它的生命周期与线程相同。虚拟机栈描述的是 Java 方法执行的线程内存模型：每个方法被执行的时候，Java 虚拟机都会同步创建一个栈帧（Stack Frame）用于存储局部变量表、操作数栈、动态连接、方法出口等信息。每一个方法被调用直至执行完毕的过程，就对应着一个栈帧在虚拟机栈中从入栈到出栈的过程。<br />局部变量表存放了编译期可知的各种 Java 虚拟机基本数据类型（boolean、byte、char、short、int、 float、long、double）、对象引用和 returnAddress 类型（指向了一条字节码指令的地址）。<br />这些数据类型在局部变量表中的存储空间以局部变量槽（Slot）来表示，其中 64 位长度的 long 和 double 类型的数据会占用两个变量槽，其余的数据类型只占用一个。局部变量表所需的内存空间在编译期间完成分配，当进入一个方法时，这个方法需要在栈帧中分配多大的局部变量空间是完全确定的，在方法运行期间不会改变局部变量表的大小。<br />虚拟机栈两类异常状况：如果线程请求的栈深度大于虚拟机所允许的深度，将抛出 StackOverflowError 异常；如果 Java 虚拟机栈容量可以动态扩展，当栈扩展时无法申请到足够的内存会抛出 OutOfMemoryError 异常。<br><a name="m3Mnj"></a></p><h4 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h4><p>本地方法栈与虚拟机栈所发挥的作用是非常相似的，其区别只是虚拟机栈为虚拟机执行 Java 方法（也就是字节码）服务，而本地方法栈则是为虚拟机使用到的本地（Native）方法服务。<br />本地方法栈也会在栈深度溢出或者栈扩展失败时分别抛出 StackOverflowError 和OutOfMemoryError 异常。<br><a name="JvKc7"></a></p><h4 id="Java-堆"><a href="#Java-堆" class="headerlink" title="Java 堆"></a>Java 堆</h4><p>Java 堆是虚拟机所管理的内存中最大的一块。Java 堆是被所有线程共享的一块内存区域，在虚拟机启动时创建。此内存区域的唯一目的就是存放对象实例，Java 里“几乎”所有的对象实例都在这里分配内存。<br />Java 堆是垃圾收集器管理的内存区域。<br />从分配内存的角度看，所有线程共享的 Java 堆中可以划分出多个线程私有的分配缓冲区，以提升对象分配时的效率。<br />Java 堆可以处于物理上不连续的内存空间中，但在逻辑上它应该被视为连续的，这点就像用磁盘空间去存储文件一样，并不要求每个文件都连续存放。但对于大对象，多数虚拟机实现出于实现简单、存储高效的考虑，很可能会要求连续的内存空间。<br />Java 堆既可以被实现成固定大小的，也可以是可扩展的，主流的 Java 虚拟机都是按照可扩展来实现的（通过参数-Xmx 和-Xms 设定）。如果在 Java 堆中没有内存完成实例分配，并且堆也无法再扩展时，Java 虚拟机将会抛出 OutOfMemoryError 异常。<br><a name="YWEjT"></a></p><h4 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h4><p>方法区与 Java 堆一样，是各个线程共享的内存区域，它用于存储已被虚拟机加载的类型信息、常量、静态变量、即时编译器编译后的代码缓存等数据。虽然方法区被描述为堆的一个逻辑部分，但是它却有一个别名叫作“非堆”（Non-Heap），目的是与 Java 堆区分开来。<br />在 JDK 8 以前，HotSpot 虚拟机把收集器的分代设计扩展至方法区，或者说使用永久代来实现方法区，这样使得 HotSpot 的垃圾收集器能够像管理 Java 堆一样管理这部分内存，省去专门为方法区编写内存管理代码的工作，但这种设计导致了 Java 应用更容易遇到内存溢出的问题。<br />在 JDK 6 的时候 HotSpot 就有放弃永久代，逐步改为采用本地内存来实现方法区的计划了，到了 JDK 7 的 HotSpot，已经把原本放在永久代的字符串常量池、静态变量等移出，而到了 JDK 8，终于完全废弃了永久代的概念，改用在本地内存中实现的元空间来代替，把 JDK 7 中永久代还剩余的内容（主要是类型信息）全部移到元空间中。<br />对方法区的约束非常宽松，除了和 Java 堆一样不需要连续的内存和可以选择固定大小或者可扩展外，甚至还可以选择不实现垃圾收集。垃圾收集行为在这个区域是比较少出现的，这区域的内存回收目标主要是针对常量池的回收和对类型的卸载。<br />如果方法区无法满足新的内存分配需求时，将抛出 OutOfMemoryError 异常。<br><a name="dPrNX"></a></p><h4 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h4><p>运行时常量池是方法区的一部分。Class 文件中除了有类的版本、字段、方法、接口等描述信息外，还有一项信息是常量池表，用于存放编译期生成的各种字面量与符号引用，这部分内容将在类加载后存放到方法区的运行时常量池中。<br />运行时常量池相对于 Class 文件常量池的另外一个重要特征是具备动态性，Java 语言并不要求常量一定只有编译期才能产生，也就是说，并非预置入 Class 文件中常量池的内容才能进入方法区运行时常量池，运行期间也可以将新的常量放入池中，这种特性被开发人员利用得比较多的便是 String 类的 intern()方法。<br />既然运行时常量池是方法区的一部分，自然受到方法区内存的限制，当常量池无法再申请到内存时会抛出 OutOfMemoryError 异常。<br><a name="fb1Fn"></a></p><h4 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h4><p>直接内存并不是虚拟机运行时数据区域的一部分，也不是《规范》中定义的内存区域。但是这部分内存也被频繁地使用，而且也可能导致OutOfMemoryError 异常出现。<br />在 JDK 1.4 中新加入了 NIO类，引入了一种基于通道（Channel）与缓冲区（Buffer）的 I&#x2F;O 方式，它可以使用 Native 函数库直接分配堆外内存，然后通过一个存储在 Java 堆里面的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据。<br />配置虚拟机参数时，会根据实际内存去设置-Xmx等参数信息，但经常忽略掉直接内存，使得各个内存区域总和大于物理内存限制，从而导致动态扩展时出现 OutOfMemoryError 异常。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域。这些区域有各自的用途，以及创建和销毁的时间，有的区域随着虚拟机进程的启动而一直存在，有些区域则是依赖用户线程的启动和结束而建立和销毁。Java 虚拟机所管理的内存将会包括以下几个运行</summary>
+      
+    
+    
+    
+    <category term="深入理解Java虚拟机" scheme="http://example.com/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/"/>
+    
+    
+    <category term="内存区域" scheme="http://example.com/tags/%E5%86%85%E5%AD%98%E5%8C%BA%E5%9F%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发相关 Unsafe 类</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E7%9B%B8%E5%85%B3%20Unsafe%20%E7%B1%BB/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E7%9B%B8%E5%85%B3%20Unsafe%20%E7%B1%BB/</id>
+    <published>2022-12-04T17:10:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>Unsafe 是 CAS 的核心类。由于 Java 无法直接访问底层操作系统，而是需要通过 native 方法来实现。不过 JVM 留了一个后门，Unsafe 类提供了硬件级别的原子操作，可以利用它直接操作内存数据。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;Unsafe 是 CAS 的核心类。由于 Java 无法直接访问底层操作系统，而是需要通过 native 方法来实现。不过 JVM 留了一个后门，Unsafe 类提供了硬件级别的原子操作，可以利用它直接操作内存数据。&lt;/p&gt;
+</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发相关" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E7%9B%B8%E5%85%B3/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>异步调用 旅游平台问题</title>
+    <link href="http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20%E6%97%85%E6%B8%B8%E5%B9%B3%E5%8F%B0%E9%97%AE%E9%A2%98/"/>
+    <id>http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20%E6%97%85%E6%B8%B8%E5%B9%B3%E5%8F%B0%E9%97%AE%E9%A2%98/</id>
+    <published>2022-12-04T17:00:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>如果想要搭建一个旅游平台，经常会有这样的需求，那就是用户想同时获取多家航空公司的航班信息。比如，从北京到上海的机票钱是多少？有很多家航空公司都有这样的航班信息，所以应该把所有航空公司的航班、票价等信息都获取到，然后再聚合。由于每个航空公司都有自己的服务器，所以分别去请求它们的服务器就可以了，比如请求国航、海航、东航等。<br />实现目标：有超时的并行获取，并行的去请求各个网站信息。但是规定了一个时间的超时，比如 3 秒钟，那么到 3 秒钟的时候如果都已经返回了那当然最好，把它们收集起来即可；但是如果还有些网站没能及时返回，就把这些请求给忽略掉，这样一来用户体验就比较好了，它最多只需要等固定的 3 秒钟就能拿到信息，虽然拿到的可能不是最全的，但是总比一直等更好。<br><a name="mOkxh"></a></p><h4 id="线程池实现"><a href="#线程池实现" class="headerlink" title="线程池实现"></a>线程池实现</h4><p>用线程池去实现是最基础的方案。<br />有一个优化的空间，比如说网络特别好时，每个航空公司响应速度都特别快，根本不需要等三秒，有的航空公司可能几百毫秒就返回了，那么也不应该让用户等 3 秒。所以需要进行改进。<br><a name="WUhsq"></a></p><h4 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch"></a>CountDownLatch</h4><p>使用 CountDownLatch 实现这个功能，整体思路和之前是一致的，不同点在于新增了一个 CountDownLatch，并且把它传入到了 Task 中。在 Task 中，获取完机票信息并且把它添加到 Set 之后，会调用 countDown 方法，相当于把计数减 1。<br />这样一来，在执行 countDownLatch.await(3, TimeUnit.SECONDS) 这个函数进行等待时，如果三个任务都非常快速地执行完毕了，那么三个线程都已经执行了 countDown 方法，那么这个 await 方法就会立刻返回，不需要等到 3 秒钟。<br />如果有一个请求特别慢，相当于有一个线程没有执行 countDown 方法，来不及在 3 秒钟之内执行完毕，那么这个带超时参数的 await 方法也会在 3 秒钟到了以后，及时地放弃这一次等待，于是就把 prices 给返回了。所以这样一来，就利用 CountDownLatch 实现了这个需求。<br><a name="SX8SI"></a></p><h4 id="CompletableFuture"><a href="#CompletableFuture" class="headerlink" title="CompletableFuture"></a>CompletableFuture</h4><p>使用 CompletableFuture 的 runAsync 方法，这个方法会异步的去执行任务。三个任务会分别返回一个 CompletableFuture 对象，把它们命名为 task 1、task 2、task 3，然后执行 CompletableFuture 的 allOf 方法，并且把 task 1、task 2、task 3 传入。这个方法的作用是把多个 task 汇总，然后可以根据需要去获取到传入参数的这些 task 的返回结果，或者等待它们都执行完毕等。把这个返回值叫作 allTasks，并且在下面调用它的带超时时间的 get 方法，同时传入 3 秒钟的超时参数。<br />如果在 3 秒钟之内这 3 个任务都可以顺利返回，也就是这个任务包括的那三个任务，每一个都执行完毕的话，则这个 get 方法就可以及时正常返回，并且往下执行，相当于执行到 return prices。在下面的这个 Task 的 run 方法中，该方法如果执行完毕的话，对于 CompletableFuture 而言就意味着这个任务结束，它是以这个作为标记来判断任务是不是执行完毕的。但是如果有某一个任务没能来得及在 3 秒钟之内返回，那么这个带超时参数的 get 方法便会抛出 TimeoutException 异常，同样会被 catch 住。这样一来它就实现了这样的效果：会尝试等待所有的任务完成，但是最多只会等 3 秒钟，在此之间，如及时完成则及时返回。所以利用 CompletableFuture，同样也可以解决旅游平台的问题。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;如果想要搭建一个旅游平台，经常会有这样的需求，那就是用户想同时获取多家航空公司的航班信息。比如，从北京到上海的机票钱是多少？有很多家航空公司都有这样的航班信息，所以应该把所有航空公司的航班、票价等信息都获取到，然后再聚合。由于每个航空公司都有自己的服务器，所以分别去请求它们</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="异步调用" scheme="http://example.com/tags/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>异步调用 Future</title>
+    <link href="http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20Future%20%E6%8E%A5%E5%8F%A3/"/>
+    <id>http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20Future%20%E6%8E%A5%E5%8F%A3/</id>
+    <published>2022-12-04T16:50:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>Future 作用：当做一定运算的时候，运算过程可能比较耗时，有时会去查数据库，或是繁重的计算，比如压缩、加密等，在这种情况下，如果、一直在原地等待方法返回，显然是不明智的，整体程序的运行效率会大大降低。可以把运算的过程放到子线程去执行，再通过 Future 去控制子线程执行的计算过程，最后获取到计算结果。这样一来就可以把整个程序的运行效率提高，是一种异步的思想。<br><a name="v9Lw9"></a></p><h4 id="Callable-和-Future-的关系"><a href="#Callable-和-Future-的关系" class="headerlink" title="Callable 和 Future 的关系"></a>Callable 和 Future 的关系</h4><p>Callable 接口相比于 Runnable 的一大优势是可以有返回结果，返回结果可以用 Future 类的 get 方法来获取 。Future 相当于一个存储器，它存储了 Callable 的 call 方法的任务结果。除此之外还可以通过 Future 的 isDone 方法来判断任务是否已经执行完毕了，还可以通过 cancel 方法取消这个任务，或限时获取任务的结果等。<br><a name="DbqF0"></a></p><h4 id="Future-的方法和用法"><a href="#Future-的方法和用法" class="headerlink" title="Future 的方法和用法"></a>Future 的方法和用法</h4><p><a name="SXcAB"></a></p><h5 id="get-方法：获取结果"><a href="#get-方法：获取结果" class="headerlink" title="get() 方法：获取结果"></a>get() 方法：获取结果</h5><p>get 方法最主要的作用就是获取任务执行的结果，该方法在执行时的行为取决于 Callable 任务的状态，可能会发生以下 5 种情况。</p><ol><li>最常见的就是当执行 get 的时候，任务已经执行完毕了，可以立刻返回，获取到任务执行的结果。</li><li>任务还没有结果，比如往线程池中放一个任务，线程池中可能积压了很多任务，还没轮到去执行的时候，就去 get 了，在这种情况下，相当于任务还没开始；还有一种情况是任务正在执行中，但是执行过程比较长，所以去 get 的时候，它依然在执行的过程中。无论是任务还没开始或在进行中，调用 get 的时候，都会把当前的线程阻塞，直到任务完成再把结果返回回来。</li><li>任务执行过程中抛出异常，一旦这样，再去调用 get 的时候，就会抛出 ExecutionException 异常，不管执行 call 方法时里面抛出的异常类型是什么，在执行 get 方法时所获得的异常都是 ExecutionException。</li><li>任务被取消了，如果任务被取消，我们用 get 方法去获取结果时则会抛出 CancellationException。</li><li>任务超时，get 方法有一个重载方法，那就是带延迟参数的，调用了这个带延迟参数的 get 方法之后，如果 call 方法在规定时间内正常顺利完成了任务，那么 get 会正常返回；但是如果到达了指定时间依然没有完成任务，get 方法则会抛出 TimeoutException，代表超时了。</li></ol><p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671641139990-108fe365-5e11-4826-a197-79d5a1d4303c.png#averageHue=%23fafafa&clientId=ua77d4029-629f-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=325&id=u2c7e3946&margin=%5Bobject%20Object%5D&name=1593854069905-b7af9280-25f5-41e7-98a8-2b6134a9316c.png&originHeight=530&originWidth=1184&originalType=binary&ratio=1&rotation=0&showTitle=false&size=59581&status=done&style=none&taskId=uf06034bd-e63a-48f1-a096-ffbe1483db8&title=&width=726" alt="1593854069905-b7af9280-25f5-41e7-98a8-2b6134a9316c.png"><br />右侧是一个线程池，线程池中有一些线程来执行任务。重点在图的左侧，可以看到有一个 submit 方法，该方法往线程池中提交了一个 Task，这个 Task 实现了 Callable 接口，当给线程池提交这个任务的时候，调用 submit 方法会立刻返回一个 Future 类型的对象，这个对象目前内容是空的，其中还不包含计算结果，因为此时计算还没有完成。当计算一旦完成时，也就是可以获取结果的时候，线程池便会把这个结果填入到之前返回的 Future 中去，而不是在此时新建一个新的 Future。这时就可以利用 Future 的 get 方法来获取到任务的执行结果了。<br><a name="FZAJh"></a></p><h5 id="isDone-方法：判断是否执行完毕"><a href="#isDone-方法：判断是否执行完毕" class="headerlink" title="isDone() 方法：判断是否执行完毕"></a>isDone() 方法：判断是否执行完毕</h5><p>该方法是用来判断当前这个任务是否执行完毕了。<br />注意：这个方法如果返回 true 则代表执行完成了；如果返回 false 则代表还没完成。但这里如果返回 true，并不代表这个任务是成功执行的，比如说任务执行到一半抛出了异常。那么在这种情况下，对于这个 isDone 方法而言，它其实也是会返回 true 的，因为对它来说，虽然有异常发生了，但是这个任务在未来也不会再被执行，它确实已经执行完毕了。所以 isDone 方法在返回 true 的时候，不代表这个任务是成功执行的，只代表它执行完毕了。<br><a name="a0ldY"></a></p><h5 id="cancel-方法：取消任务的执行"><a href="#cancel-方法：取消任务的执行" class="headerlink" title="cancel 方法：取消任务的执行"></a>cancel 方法：取消任务的执行</h5><p>如果不想执行某个任务了，则可以使用 cancel 方法，会有以下三种情况：</p><ol><li>当任务还没有开始执行时，一旦调用 cancel，这个任务就会被正常取消，未来也不会被执行，那么 cancel 方法返回 true。</li><li>如果任务已经完成，或者之前已经被取消过了，那么执行 cancel 方法则代表取消失败，返回 false。因为任务无论是已完成还是已经被取消过了，都不能再被取消了。</li><li>任务正在执行，这个时候执行 cancel 方法是不会直接取消这个任务的，而是会根据传入的参数做判断。cancel 方法是必须传入一个参数，该参数叫作  mayInterruptIfRunning 。如果传入的参数是 true，执行任务的线程就会收到一个中断的信号，正在执行的任务可能会有一些处理中断的逻辑，进而停止。如果传入的是 false 则就代表不中断正在运行的任务，也就是说本次 cancel 不会有任何效果，同时 cancel 方法会返回 false。</li></ol><p>传入 true 适用的情况是，明确知道这个任务能够处理中断。<br />传入 false 适用情况：</p><ul><li>如果明确知道这个线程不能处理中断，那应该传入 false；</li><li>不知道这个任务是否支持取消（是否能响应中断），因为在大多数情况下代码是多人协作的，对于这个任务是否支持中断，不一定有十足的把握，那么在这种情况下也应该传入 false；</li><li>如果这个任务一旦开始运行，希望它完全的执行完毕。在这种情况下，也应该传入 false。<br><a name="IyPom"></a></li></ul><h5 id="isCancelled-方法：判断是否被取消"><a href="#isCancelled-方法：判断是否被取消" class="headerlink" title="isCancelled() 方法：判断是否被取消"></a>isCancelled() 方法：判断是否被取消</h5><p>判断是否被取消，它和 cancel 方法配合使用。<br><a name="xlszX"></a></p><h4 id="用-FutureTask-来创建-Future"><a href="#用-FutureTask-来创建-Future" class="headerlink" title="用 FutureTask 来创建 Future"></a>用 FutureTask 来创建 Future</h4><p>除了用线程池的 submit 方法会返回一个 future 对象之外，同样还可以用 FutureTask 来获取 Future 类和任务的结果。<br />FutureTask 首先是一个任务（Task），然后具有 Future 接口的语义，因为它可以在将来（Future）得到执行的结果。<br />RunnableFuture 继承了 Runnable 接口和 Future 接口，而 FutureTask 又实现了 RunnableFuture 接口，所以 FutureTask 既可以作为 Runnable 被线程执行，又可以作为 Future 得到 Callable 的返回值。<br />典型用法是，把 Callable 实例当作 FutureTask 构造函数的参数，生成 FutureTask 的对象，然后把这个对象当作一个 Runnable 对象，放到线程池中或另起线程去执行，最后还可以通过 FutureTask 获取任务执行的结果。<br><a name="RqABS"></a></p><h4 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h4><p><a name="e6oyC"></a></p><h5 id="当-for-循环批量获取-Future-的结果时容易-block，get-方法调用时应使用-timeout-限制"><a href="#当-for-循环批量获取-Future-的结果时容易-block，get-方法调用时应使用-timeout-限制" class="headerlink" title="当 for 循环批量获取 Future 的结果时容易 block，get 方法调用时应使用 timeout 限制"></a>当 for 循环批量获取 Future 的结果时容易 block，get 方法调用时应使用 timeout 限制</h5><p>前两个 Future 所对应的任务是慢任务，而后两个 Future 对应的任务是快任务。慢任务在执行的时候需要 5 秒钟的时间才能执行完毕，而快任务很快就可以执行完毕，几乎不花费时间。<br />执行结果是打印 4 行语句，前面两个是速度慢的任务，后面两个是速度快的任务。虽然结果是正确的，但实际上在执行的时候会先等待 5 秒，然后再很快打印出这 4 行语句。<br />这里有一个问题，即第三个的任务量是比较小的，它可以很快返回结果，紧接着第四个任务也会返回结果。但是由于前两个任务速度很慢，所以在利用 get 方法执行时，会卡在第一个任务上。也就是说，虽然此时第三个和第四个任务很早就得到结果了，但此时使用这种 for 循环的方式去获取结果，依然无法及时获取到第三个和第四个任务的结果。直到 5 秒后，第一个任务出结果了，才能获取到，紧接着也可以获取到第二个任务的结果，然后才轮到第三、第四个任务。<br />假设由于网络原因，第一个任务可能长达 1 分钟都没办法返回结果，那么这个时候，主线程会一直卡着，影响了程序的运行效率。<br />此时可以用 Future 的带超时参数的 get(long timeout, TimeUnit unit) 方法来解决这个问题。这个方法的作用是，如果在限定的时间内没能返回结果的话，那么便会抛出一个 TimeoutException 异常，随后就可以把这个异常捕获住，或者是再往上抛出去，这样就不会一直卡着了。<br><a name="qHfNi"></a></p><h5 id="Future-的生命周期不能后退"><a href="#Future-的生命周期不能后退" class="headerlink" title="Future 的生命周期不能后退"></a>Future 的生命周期不能后退</h5><p>Future 的生命周期不能后退，一旦完成了任务，它就永久停在了 “已完成” 的状态，不能从头再来，也不能让一个已经完成计算的 Future 再次重新执行任务。这一点和线程、线程池的状态是一样的，线程和线程池的状态也是不能后退的。<br><a name="VrO1D"></a></p><h4 id="Future-产生新的线程了吗"><a href="#Future-产生新的线程了吗" class="headerlink" title="Future 产生新的线程了吗"></a>Future 产生新的线程了吗</h4><p>Callable 和 Future 本身并不能产生新的线程，它们需要借助其他的比如 Thread 类或者线程池才能执行任务。<br />例如，在把 Callable 提交到线程池后，真正执行 Callable 的其实还是线程池中的线程，而线程池中的线程是由 ThreadFactory 产生的，这里产生的新线程与 Callable、Future 都没有关系，所以 Future 并没有产生新的线程。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;Future 作用：当做一定运算的时候，运算过程可能比较耗时，有时会去查数据库，或是繁重的计算，比如压缩、加密等，在这种情况下，如果、一直在原地等待方法返回，显然是不明智的，整体程序的运行效率会大大降低。可以把运算的过程放到子线程去执行，再通过 Future 去控制子线程执</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="异步调用" scheme="http://example.com/tags/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>异步调用 Callable 和 Runnable 不同</title>
+    <link href="http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20Callable%20%E5%92%8C%20Runnable%20%E4%B8%8D%E5%90%8C/"/>
+    <id>http://example.com/2022/12/04/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8%20Callable%20%E5%92%8C%20Runnable%20%E4%B8%8D%E5%90%8C/</id>
+    <published>2022-12-04T16:40:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="JXPvW"></a></p><h4 id="Runnable-缺陷"><a href="#Runnable-缺陷" class="headerlink" title="Runnable 缺陷"></a>Runnable 缺陷</h4><p><a name="OOhk5"></a></p><h5 id="不能返回一个返回值"><a href="#不能返回一个返回值" class="headerlink" title="不能返回一个返回值"></a>不能返回一个返回值</h5><p>对于 Runnable 而言，它不能返回一个返回值，虽然可以利用其他的一些办法，比如在 Runnable 方法中写入日志文件或者修改某个共享的对象的办法，来达到保存线程执行结果的目的，但这种解决问题的方法效率不高。<br />实际上，在很多情况下执行一个子线程时，都希望能得到执行的任务的结果，也就是说是需要得到返回值的，比如请求网络、查询数据库等。可是 Runnable 不能返回一个返回值，这是一个非常严重的缺陷。<br><a name="q1rVO"></a></p><h5 id="不能抛出-checked-Exception"><a href="#不能抛出-checked-Exception" class="headerlink" title="不能抛出 checked Exception"></a>不能抛出 checked Exception</h5><p>新建了一个 Runnable 对象，同时重写了它的 run 方法，没有办法在这个 run 方法的方法签名上声明 throws 一个异常出来。在这个 run 方法里面也没办法 throw 一个 checked Exception，除非用 try catch 包裹起来，但是如果不用 try catch 是做不到的。<br />这就是对于 Runnable 而言的两个重大缺陷。<br><a name="y3dck"></a></p><h4 id="为什么有这样的缺陷"><a href="#为什么有这样的缺陷" class="headerlink" title="为什么有这样的缺陷"></a>为什么有这样的缺陷</h4><p>Runnable 是一个 interface，并且里面只有一个方法，叫作 public abstract void run()。这个方法已经规定了 run() 方法的返回类型是 void，而且这个方法没有声明抛出任何异常。所以当实现并重写这个方法时，既不能改返回值类型，也不能更改对于异常抛出的描述，因为在实现方法的时候，语法规定是不允许对这些内容进行修改的。<br><a name="a9CNP"></a></p><h4 id="为什么设计成这样"><a href="#为什么设计成这样" class="headerlink" title="为什么设计成这样"></a>为什么设计成这样</h4><p>假设 run() 方法可以返回返回值，或者可以抛出异常，也无济于事，因为并没有办法在外层捕获并处理，这是因为调用 run() 方法的类（比如 Thread 类和线程池）是 Java 直接提供的。所以就算它能有一个返回值，也很难把这个返回值利用到。<br><a name="ACD04"></a></p><h4 id="Callable-接口"><a href="#Callable-接口" class="headerlink" title="Callable 接口"></a>Callable 接口</h4><p>Callable 是一个类似于 Runnable 的接口，实现 Callable 接口的类和实现 Runnable 接口的类都是可以被其他线程执行的任务。<br />Callable 也是一个 interface，并且它的 call 方法中已经声明了 throws Exception，前面还有一个 V 泛型的返回值，这就和之前的 Runnable 有很大的区别。实现 Callable 接口，就要实现 call 方法，这个方法的返回值是泛型 V，如果把 call 中计算得到的结果放到这个对象中，就可以利用 call 方法的返回值来获得子线程的执行结果了。<br><a name="tHrth"></a></p><h4 id="Callable-和-Runnable-的不同之处"><a href="#Callable-和-Runnable-的不同之处" class="headerlink" title="Callable 和 Runnable 的不同之处"></a>Callable 和 Runnable 的不同之处</h4><ul><li>方法名，Callable 规定的执行方法是 call()，而 Runnable 规定的执行方法是 run()；</li><li>返回值，Callable 的任务执行后有返回值，而 Runnable 的任务执行后是没有返回值的；</li><li>抛出异常，call() 方法可抛出异常，而 run() 方法是不能抛出受检查异常的；</li><li>和 Callable 配合的有一个 Future 类，通过 Future 可以了解任务执行情况，或者取消任务的执行，还可获取任务执行的结果，这些功能都是 Runnable 做不到的，Callable 的功能要比 Runnable 强大。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;JXPvW&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;Runnable-缺陷&quot;&gt;&lt;a href=&quot;#Runnable-缺陷&quot; class=&quot;headerlink&quot; title=&quot;Runnable 缺陷&quot;&gt;&lt;/a&gt;Runnable 缺陷&lt;/h4&gt;&lt;p&gt;&lt;a nam</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="异步调用" scheme="http://example.com/tags/%E5%BC%82%E6%AD%A5%E8%B0%83%E7%94%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发容器 CopyOnWriteArrayList</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%20CopyOnWriteArrayList/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%20CopyOnWriteArrayList/</id>
+    <published>2022-12-04T16:30:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="GpAcj"></a></p><h4 id="适用场景"><a href="#适用场景" class="headerlink" title="适用场景"></a>适用场景</h4><ul><li>读操作可以尽可能的快，而写即使慢一些也没关系</li><li>读多写少<br><a name="FGdeF"></a></li></ul><h4 id="读写规则"><a href="#读写规则" class="headerlink" title="读写规则"></a>读写规则</h4><p>CopyOnWriteArrayList 读取是完全不用加锁的，更厉害的是，写入也不会阻塞读取操作，也就是说可以在写入的同时进行读取，只有写入和写入之间需要进行同步，也就是不允许多个写入同时发生，但是在写入发生时允许读取同时发生。这样一来，读操作的性能就会大幅度提升。<br><a name="CHsZz"></a></p><h4 id="CopyOnWrite-含义"><a href="#CopyOnWrite-含义" class="headerlink" title="CopyOnWrite 含义"></a>CopyOnWrite 含义</h4><p>CopyOnWrite 的意思是说，当容器需要被修改的时候，不直接修改当前容器，而是先将当前容器进行 Copy，复制出一个新的容器，然后修改新的容器，完成修改之后，再将原容器的引用指向新的容器。这样就完成了整个修改过程。<br />CopyOnWriteArrayList 利用了 “不变性” 原理，因为容器每次修改都是创建新副本，所以对于旧容器来说，其实是不可变的，也是线程安全的，无需进一步的同步操作。可以对 CopyOnWrite 容器进行并发的读，而不需要加锁，因为当前容器不会添加任何元素，也不会有修改。<br />CopyOnWriteArrayList 的所有修改操作（add，set 等）都是通过创建底层数组的新副本来实现的，所以 CopyOnWrite 容器也是一种读写分离的思想体现，读和写使用不同的容器。<br><a name="vHj1D"></a></p><h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><ul><li>内存占用问题：因为 CopyOnWrite 的写时复制机制，所以在进行写操作的时候，内存里会同时驻扎两个对象的内存，这一点会占用额外的内存空间；</li><li>在元素较多或者复杂的情况下，复制的开销很大：复制过程不仅会占用双倍内存，还需要消耗 CPU 等资源，会降低整体性能；</li><li>数据一致性问题：由于 CopyOnWrite 容器的修改是先修改副本，所以这次修改对于其他线程来说，并不是实时能看到的，只有在修改完之后才能体现出来。<br><a name="nNhKh"></a></li></ul><h4 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h4><p>在添加的时候首先上锁，并复制一个新数组，增加操作在新数组上完成，然后将 array 指向到新数组，最后解锁。实现了 CopyOnWrite 的思想：写操作是在原来容器的拷贝上进行的，并且在读取数据的时候不会锁住 list。如果对容器拷贝操作的过程中有新的读线程进来，那么读到的还是旧的数据，因为在那个时候对象的引用还没有被更改。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;GpAcj&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;适用场景&quot;&gt;&lt;a href=&quot;#适用场景&quot; class=&quot;headerlink&quot; title=&quot;适用场景&quot;&gt;&lt;/a&gt;适用场景&lt;/h4&gt;&lt;ul&gt;
+&lt;li&gt;读操作可以尽可能的快，而写即使慢一些也没关系&lt;/li&gt;
+</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发容器" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发容器 ConcurrentHashMap</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%20ConcurrentHashMap/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8%20ConcurrentHashMap/</id>
+    <published>2022-12-04T16:20:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="IqhBN"></a></p><h4 id="Java-7-版本的-ConcurrentHashMap"><a href="#Java-7-版本的-ConcurrentHashMap" class="headerlink" title="Java 7 版本的 ConcurrentHashMap"></a>Java 7 版本的 ConcurrentHashMap</h4><p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671136396978-b9d8d224-937e-4b60-bd89-633fef153044.png#averageHue=%23040300&clientId=u1aed2472-d069-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=312&id=uf9836dcb&margin=%5Bobject%20Object%5D&name=1593851807380-79a6867d-f98a-41b5-afc8-ba98584bc06c.png&originHeight=890&originWidth=1635&originalType=binary&ratio=1&rotation=0&showTitle=false&size=112945&status=done&style=none&taskId=u5f77a64f-a5a2-4c82-9a15-4a0485d6b8f&title=&width=574" alt="1593851807380-79a6867d-f98a-41b5-afc8-ba98584bc06c.png"><br />在 ConcurrentHashMap 内部进行了 Segment 分段，Segment 继承了 ReentrantLock，可以理解为一把锁，各个 Segment 之间都是相互独立上锁的，互不影响。相比于之前的 Hashtable 每次操作都需要把整个对象锁住而言，大大提高了并发效率。<br />每个 Segment 的底层数据结构与 HashMap 类似，仍然是数组和链表组成的拉链法结构，最大并发个数就是 Segment 的个数，默认是 16。<br><a name="zHzGL"></a></p><h4 id="Java-8-版本的-ConcurrentHashMap"><a href="#Java-8-版本的-ConcurrentHashMap" class="headerlink" title="Java 8 版本的 ConcurrentHashMap"></a>Java 8 版本的 ConcurrentHashMap<img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671136412587-c59c1c72-2aed-4641-8a5c-556e5ef47e4b.png#averageHue=%231b0900&clientId=u1aed2472-d069-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=206&id=u2acde691&margin=%5Bobject%20Object%5D&name=1593851807331-ab92209f-3f6b-4b91-891e-705f0350b52b.png&originHeight=626&originWidth=1776&originalType=binary&ratio=1&rotation=0&showTitle=false&size=104899&status=done&style=none&taskId=u88cddc7d-ec29-4b5b-82b6-ecbc078013f&title=&width=585" alt="1593851807331-ab92209f-3f6b-4b91-891e-705f0350b52b.png"></h4><p>当链表长度大于某一个阈值（默认为 8），且同时满足一定的容量要求的时候，ConcurrentHashMap 便会把这个链表从链表的形式转化为红黑树的形式，目的是进一步提高它的查找性能。<br />（默认是链表长度达到 8 就转成红黑树，而当长度降到 6 就转换回去，这体现了时间和空间平衡的思想）</p><ol><li>锁粒度更细，理想情况下 table 数组元素的个数就是其支持并发的最大个数，并发度比之前有提高；</li><li>放弃了 Segment 的设计，采用 Node + CAS + synchronized 保证线程安全；</li><li>先使用拉链法，在链表长度超过一定阈值时，将链表转换为红黑树，来提高查找效率。</li></ol>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;IqhBN&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;Java-7-版本的-ConcurrentHashMap&quot;&gt;&lt;a href=&quot;#Java-7-版本的-ConcurrentHashMap&quot; class=&quot;headerlink&quot; title=&quot;Java 7 版</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发容器" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%AE%B9%E5%99%A8/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发工具 CyclicBarrier</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20CyclicBarrier/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20CyclicBarrier/</id>
+    <published>2022-12-04T16:10:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>CyclicBarrier 和 CountDownLatch 有一定的相似性，它们都能阻塞一个或者一组线程，直到某种预定的条件达到之后，这些之前在等待的线程才会统一出发，继续向下执行。<br />CyclicBarrier 可以构造出一个集结点，当某一个线程执行 await() 的时候，它就会到这个集结点开始等待，等待这个栅栏被撤销。直到预定数量的线程都到了这个集结点之后，这个栅栏就会被撤销，之前等待的线程就在此刻统一出发，继续去执行剩下的任务。<br><a name="s3pfg"></a></p><h4 id="执行动作-barrierAction"><a href="#执行动作-barrierAction" class="headerlink" title="执行动作 barrierAction"></a>执行动作 barrierAction</h4><p>public CyclicBarrier(int parties, Runnable barrierAction)：当 parties 线程到达集结点时，继续往下执行前，会执行一次这个动作。<br />CyclicBarrier 还有一个构造函数是传入两个参数的，第一个参数依然是 parties，代表需要几个线程到齐；第二个参数是一个 Runnable 对象，就是 barrierAction。当预设数量的线程到达了集结点之后，在出发的时候，便会执行传入的 Runnable 对象。<br />值得注意的是，这个语句每个周期只打印一次，不是几个线程在等待就打印几次，而是说这个任务只在“开闸”的时候执行一次。<br><a name="TYG22"></a></p><h4 id="CyclicBarrier-和-CountDownLatch-异同"><a href="#CyclicBarrier-和-CountDownLatch-异同" class="headerlink" title="CyclicBarrier 和 CountDownLatch 异同"></a>CyclicBarrier 和 CountDownLatch 异同</h4><p>相同点：都能阻塞一个或一组线程，直到某个预设的条件达成发生，再统一出发。<br />不同点：</p><ul><li>作用对象不同：CyclicBarrier 要等固定数量的线程都到达了栅栏位置才能继续执行，而 CountDownLatch 只需等待数字倒数到 0，也就是说 CountDownLatch 作用于事件，但 CyclicBarrier 作用于线程；CountDownLatch 是在调用了 countDown 方法之后把数字倒数减 1，而 CyclicBarrier 是在某线程开始等待后把计数减 1；</li><li>可重用性不同：CountDownLatch 在倒数到 0  并且触发门闩打开后，就不能再次使用了，除非新建一个新的实例；而 CyclicBarrier 可以重复使用，并不需要重新新建实例。CyclicBarrier 还可以随时调用 reset 方法进行重置，如果重置时有线程已经调用了 await 方法并开始等待，那么这些线程则会抛出 BrokenBarrierException 异常；</li><li>执行动作不同：CyclicBarrier 有执行动作 barrierAction，而 CountDownLatch 没这个功能。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;CyclicBarrier 和 CountDownLatch 有一定的相似性，它们都能阻塞一个或者一组线程，直到某种预定的条件达到之后，这些之前在等待的线程才会统一出发，继续向下执行。&lt;br /&gt;CyclicBarrier 可以构造出一个集结点，当某一个线程执行 await</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发工具" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发工具 CountDownLatch</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20CountDownLatch/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20CountDownLatch/</id>
+    <published>2022-12-04T16:00:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>CountDownLatch 类在创建实例的时候，需要在构造函数中传入倒数次数，然后由需要等待的线程去调用 await 方法开始等待，而每一次其他线程调用了 countDown 方法之后，计数便会减 1，直到减为 0 时，之前等待的线程便会继续运行。<br><a name="tZmi1"></a></p><h4 id="流程图"><a href="#流程图" class="headerlink" title="流程图"></a>流程图</h4><p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671713573218-0b200202-1a28-4db9-a735-2b8fd5a7b1e3.png#averageHue=%23f8f3ea&clientId=u028836a0-19f1-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=247&id=u2c1c0de6&margin=%5Bobject%20Object%5D&name=1593854137435-c885535b-9216-45a1-a096-f06abdfbbed4.png&originHeight=415&originWidth=691&originalType=binary&ratio=1&rotation=0&showTitle=false&size=25975&status=done&style=none&taskId=u5d11dbc5-99aa-4738-8177-8583294a8af&title=&width=411" alt="1593854137435-c885535b-9216-45a1-a096-f06abdfbbed4.png"><br />最开始 CountDownLatch 设置的初始值为 3，然后 T0 线程上来就调用 await 方法，它的作用是让这个线程开始等待，等待后面的 T1、T2、T3，它们每一次调用 countDown 方法，3 这个数值就会减 1，也就是从 3 减到 2，从 2 减到 1，从 1 减到 0，一旦减到 0 之后，这个 T0 就相当于达到了自己触发继续运行的条件，于是它就恢复运行了。<br><a name="SU4Di"></a></p><h4 id="主要方法"><a href="#主要方法" class="headerlink" title="主要方法"></a>主要方法</h4><ul><li>构造函数：public CountDownLatch(int count) {  };</li></ul><p>构造函数要传入一个参数，该参数 count 是需要倒数的数值。</p><ul><li>await()</li></ul><p>调用 await() 方法的线程开始等待，直到倒数结束，也就是 count 值为 0 的时候才会继续执行。</p><ul><li>await(long timeout, TimeUnit unit)</li></ul><p>重载的方法，里面会传入超时参数，作用和 await() 类似，但是这里可以设置超时时间，如果超时就不再等待了。</p><ul><li>countDown()</li></ul><p>把数值倒数 1，也就是将 count 值减 1，直到减为 0 时，之前等待的线程会被唤起。<br><a name="DMFkW"></a></p><h4 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h4><ul><li>一个线程等待其他多个线程都执行完毕，再继续自己的工作；</li><li>多个线程等待某一个线程的信号，同时开始执行。<br><a name="bu79E"></a></li></ul><h4 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h4><ul><li>两种用法并不是孤立的，可以把这两种用法结合起来，比如利用两个 CountDownLatch，第一个初始值为多个，第二个初始值为 1，这样就可以应对更复杂的业务场景了；</li><li>CountDownLatch 是不能够重用的，已经完成了倒数就不可以在下一次继续去重新倒数了，如果有这个需求的话，可以考虑使用 CyclicBarrier 或者创建一个新的 CountDownLatch 实例。</li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;CountDownLatch 类在创建实例的时候，需要在构造函数中传入倒数次数，然后由需要等待的线程去调用 await 方法开始等待，而每一次其他线程调用了 countDown 方法之后，计数便会减 1，直到减为 0 时，之前等待的线程便会继续运行。&lt;br&gt;&lt;a name=</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发工具" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发工具 Semaphore</title>
+    <link href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20Semaphore/"/>
+    <id>http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7%20Semaphore/</id>
+    <published>2022-12-04T15:50:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671662085622-fce2d7dc-a3e0-4507-b2a5-30f80f25b0a1.png#averageHue=%23000000&clientId=ub6c7b6e1-d6b0-4&crop=0&crop=0&crop=1&crop=1&height=172&id=w2MPR&name=image.png&originHeight=367&originWidth=1490&originalType=binary&ratio=1&rotation=0&showTitle=false&size=49092&status=done&style=none&taskId=u721bd523-b1be-43b3-adc7-142d8707c8f&title=&width=698" alt="image.png"><br />信号量的一个最主要的作用就是，来控制那些需要限制并发访问量的资源。具体来讲，信号量会维护“许可证”的计数，而线程去访问共享资源前，必须先拿到许可证。线程可以从信号量中去“获取”一个许可证，一旦线程获取之后，信号量持有的许可证就转移过去了，所以信号量手中剩余的许可证要减一。<br />同理，线程也可以“释放”一个许可证，如果线程释放了许可证，这个许可证相当于被归还给信号量了，于是信号量中的许可证的可用数量加一。当信号量拥有的许可证数量减到 0 时，如果下个线程还想要获得许可证，那么这个线程就必须等待，直到之前得到许可证的线程释放，它才能获取。由于线程在没有获取到许可证之前不能进一步去访问被保护的共享资源，所以这就控制了资源的并发访问量，这就是整体思路。<br><a name="VRyq0"></a></p><h4 id="使用流程"><a href="#使用流程" class="headerlink" title="使用流程"></a>使用流程</h4><p>首先初始化一个信号量，并且传入许可证的数量，这是它的带公平参数的构造函数：public Semaphore(int permits, boolean fair)，传入两个参数，第一个参数是许可证的数量，另一个参数是是否公平。如果第二个参数传入 true，则代表它是公平的策略，会把之前已经等待的线程放入到队列中，而当有新的许可证到来时，它会把这个许可证按照顺序发放给之前正在等待的线程；如果这个构造函数第二个参数传入 false，则代表非公平策略，也就有可能插队，就是说后进行请求的线程有可能先得到许可证。<br />第二个流程是在建立完这个构造函数，初始化信号量之后，可以利用 acquire() 方法。在调用慢服务之前，让线程来调用 acquire 方法或者 acquireUninterruptibly方法，这两个方法的作用是要获取许可证，这同时意味着只有这个方法能顺利执行下去的话，它才能进一步访问这个代码后面的调用慢服务的方法。如果此时信号量已经没有剩余的许可证了，那么线程就会等在 acquire 方法的这一行代码中，所以它也不会进一步执行下面调用慢服务的方法。用这种方法，保护了慢服务。<br />acquire() 和 acquireUninterruptibly() 的区别是：是否能响应中断。acquire() 是可以支持中断的，也就是说，它在获取信号量的期间，假设这个线程被中断了，那么它就会跳出 acquire() 方法，不再继续尝试获取了。而 acquireUninterruptibly() 方法是不会被中断的。<br />第三步就是在任务执行完毕之后，调用 release() 来释放许可证，比如说在执行完慢服务这行代码之后，再去执行 release() 方法，这样一来，许可证就会还给信号量了。<br><a name="mOjJY"></a></p><h4 id="其他主要方法"><a href="#其他主要方法" class="headerlink" title="其他主要方法"></a>其他主要方法</h4><ul><li>public boolean tryAcquire()</li></ul><p>tryAcquire 和锁的 trylock 思维是一致的，是尝试获取许可证，相当于看看现在有没有空闲的许可证，如果有就获取，如果现在获取不到也没关系，不必陷入阻塞，可以去做别的事。</p><ul><li>public boolean tryAcquire(long timeout, TimeUnit unit)</li></ul><p>重载的方法，它里面传入了超时时间。比如传入了 3 秒钟，则意味着最多等待 3 秒钟，如果等待期间获取到了许可证，则往下继续执行；如果超时时间到，依然获取不到许可证，它就认为获取失败，且返回 false。</p><ul><li>availablePermits()</li></ul><p>用来查询可用许可证的数量，返回一个整型的结果。<br><a name="CMVdg"></a></p><h4 id="特殊用法"><a href="#特殊用法" class="headerlink" title="特殊用法"></a>特殊用法</h4><p>信号量有一种特殊用法，那就是它可以一次性释放或者获取多个许可证。<br />比如 semaphore.acquire(2)，里面传入参数 2，这就叫一次性获取两个许可证。同时释放也是一样的，semaphore.release(3) 相当于一次性释放三个许可证。<br />使用场景：第一个任务 A（Task A ）会调用很耗资源的方法一 method1()，而任务 B 调用的是方法二 method 2，但这个方法不是特别消耗资源。在这种情况下，假设一共有 5 个许可证，只能允许同时有 1 个线程调用方法一，或者同时最多有 5 个线程调用方法二，但是方法一和方法二不能同时被调用。<br />所以就要求 Task A 在执行之前要一次性获取到 5 个许可证才能执行，而 Task B 只需要获取一个许可证就可以执行了。这样就避免了任务 A 和 B 同时运行，同时又很好的兼顾了效率，不至于同时只允许一个线程访问方法二，那样的话也存在浪费资源的情况，所以可以根据需求合理地利用信号量的许可证来分配资源。<br><a name="VoAyN"></a></p><h4 id="注意点"><a href="#注意点" class="headerlink" title="注意点"></a>注意点</h4><ul><li>获取和释放的许可证数量尽量保持一致，否则比如每次都获取 2 个但只释放 1 个甚至不释放，那么信号量中的许可证就慢慢被消耗完了，最后导致里面没有许可证了，那其他的线程就再也没办法访问了； </li><li>在初始化的时候可以设置公平性，如果设置为 true 则会让它更公平，但如果设置为 false 则会让总的吞吐量更高；</li><li>信号量是支持跨线程、跨线程池的，而且并不是哪个线程获得的许可证，就必须由这个线程去释放。事实上，对于获取和释放许可证的线程是没有要求的，比如线程 A 获取了然后由线程 B 释放，这完全是可以的，只要逻辑合理即可。<br><a name="Tr6rb"></a></li></ul><h4 id="信号量能被-FixedThreadPool-替代吗？"><a href="#信号量能被-FixedThreadPool-替代吗？" class="headerlink" title="信号量能被 FixedThreadPool 替代吗？"></a>信号量能被 FixedThreadPool 替代吗？</h4><p>在实际业务中会遇到这样的情况：在调用慢服务之前需要有个判断条件，比如只想在每天的零点附近去访问这个慢服务时受到最大线程数的限制，而在除了每天零点附近的其他大部分时间，是希望让更多的线程去访问的。所以在这种情况下就应该把线程池的线程数量设置为 50 ，甚至更多，然后在执行之前加一个 if 判断，如果符合时间限制了，再用信号量去额外限制，这样做是比较合理的。<br />比如说在大型应用程序中会有不同类型的任务，它们也是通过不同的线程池来调用慢服务的。因为调用方不只是一处，可能是 Tomcat 服务器或者网关，不应该限制，或者说也无法做到限制它们的线程池的大小。但可以做的是，在执行任务之前用信号量去限制一下同时访问的数量，因为信号量具有跨线程、跨线程池的特性，所以即便这些请求来自于不同的线程池，也可以限制它们的访问。如果用 FixedThreadPool 去限制，那就做不到跨线程池限制了，这样的话会让功能大大削弱。<br />基于以上的理由，如果想要限制并发访问的线程数，用信号量是更合适的。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;img src=&quot;https://cdn.nlark.com/yuque/0/2022/png/25368844/1671662085622-fce2d7dc-a3e0-4507-b2a5-30f80f25b0a1.png#averageHue=%23000000&amp;cli</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="并发工具" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%B7%A5%E5%85%B7/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>阻塞队列 阻塞队列选择</title>
+    <link href="http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E9%80%89%E6%8B%A9/"/>
+    <id>http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E9%80%89%E6%8B%A9/</id>
+    <published>2022-12-04T15:40:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>FixedThreadPool（SingleThreadExecutor 同理）选取的是 LinkedBlockingQueue</li></ul><p>LinkedBlockingQueue 内部是用链表实现的，长度默认是可以无限延长的。<br />由于 FixedThreadPool 的线程数是固定的，在任务激增的时候，它无法增加更多的线程来帮忙处理 Task，所以需要像 LinkedBlockingQueue 这样没有容量上限的 Queue 来存储那些还没处理的 Task。<br />如果所有的 corePoolSize 线程都正在忙，那么新任务将会进入阻塞队列等待，由于队列是没有容量上限的，队列永远不会被填满，这样就保证了对于线程池 FixedThreadPool 和 SingleThreadExecutor 而言，不会拒绝新任务的提交，也不会丢失数据。</p><ul><li>CachedThreadPool 选取的是 SynchronousQueue</li></ul><p>对于 CachedThreadPool 而言，为了避免新提交的任务被拒绝，它选择了无限制的 maximumPoolSize，所以既然它的线程的最大数量是无限的，也就意味着它的线程数不会受到限制，那么它就不需要一个额外的空间来存储那些 Task，因为每个任务都可以通过新建线程来处理。<br />SynchronousQueue 会直接把任务交给线程，而不需要另外保存它们，效率更高，所以 CachedThreadPool 使用的 Queue 是 SynchronousQueue。</p><ul><li>ScheduledThreadPool（SingleThreadScheduledExecutor 同理）选取的是 DelayedWorkQueue</li></ul><p>对于 ScheduledThreadPool 而言，它使用的是 DelayedWorkQueue。延迟队列的特点是：不是先进先出，而是会按照延迟时间的长短来排序，下一个即将执行的任务会排到队列的最前面。<br />使用延迟队列的原因是，ScheduledThreadPool 处理的是基于时间而执行的 Task，而延迟队列有能力把 Task 按照执行时间的先后进行排序，这正是所需要的功能。</p><ul><li>ArrayBlockingQueue</li></ul><p>ArrayBlockingQueue 经常被用于手动创建的线程池中。<br />这种阻塞队列内部是用数组实现的，在新建对象的时候要求传入容量值，且后期不能扩容，所以 ArrayBlockingQueue 的最大特点就是容量是有限且固定的。这样一来使用 ArrayBlockingQueue 且设置了合理大小的最大线程数的线程池，在任务队列放满了以后，如果线程数也已经达到了最大值，那么线程池根据规则就会拒绝新提交的任务，而不会无限增加任务或者线程数导致内存不足，可以非常有效地防止资源耗尽的情况发生。<br><a name="XOJY2"></a></p><h4 id="功能"><a href="#功能" class="headerlink" title="功能"></a>功能</h4><p>比如是否需要阻塞队列来排序，如优先级排序、延迟执行等。如果有这个需要，就必须选择类似于 PriorityBlockingQueue 之类的有排序能力的阻塞队列。<br><a name="gINVf"></a></p><h4 id="容量"><a href="#容量" class="headerlink" title="容量"></a>容量</h4><p>是否有存储的要求，还是只需要“直接传递”。在考虑这一点的时候，几种阻塞队列，有的是容量固定的，如 ArrayBlockingQueue；有的默认是容量无限的，如 LinkedBlockingQueue；而有的里面没有任何容量，如 SynchronousQueue；而对于 DelayQueue 而言，它的容量固定就是 Integer.MAX_VALUE。<br />需要根据任务数量来推算出合适的容量，从而去选取合适的 BlockingQueue。<br><a name="mKVp0"></a></p><h4 id="能否扩容"><a href="#能否扩容" class="headerlink" title="能否扩容"></a>能否扩容</h4><p>有时并不能在初始的时候很好的准确估计队列的大小，因为业务可能有高峰期、低谷期。<br />如果一开始就固定一个容量，可能无法应对所有的情况，也是不合适的，有可能需要动态扩容。如果需要动态扩容的话，那么就不能选择 ArrayBlockingQueue ，因为它的容量在创建时就确定了，无法扩容。相反，PriorityBlockingQueue 即使在指定了初始容量之后，后续如果有需要，也可以自动扩容。<br><a name="Sqzp5"></a></p><h4 id="内存结构"><a href="#内存结构" class="headerlink" title="内存结构"></a>内存结构</h4><p>ArrayBlockingQueue 的内部结构是数组的形式。LinkedBlockingQueue 的内部是用链表实现的。<br />ArrayBlockingQueue 没有链表所需要的节点，空间利用率更高。<br><a name="j3epJ"></a></p><h4 id="性能"><a href="#性能" class="headerlink" title="性能"></a>性能</h4><p>比如 LinkedBlockingQueue 由于拥有两把锁，它的操作粒度更细，在并发程度高的时候，相对于只有一把锁的 ArrayBlockingQueue 性能会更好。<br />SynchronousQueue 性能往往优于其他实现，因为它只需要“直接传递”，而不需要存储的过程。如果场景需要直接传递的话，可以优先考虑 SynchronousQueue。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;ul&gt;
+&lt;li&gt;FixedThreadPool（SingleThreadExecutor 同理）选取的是 LinkedBlockingQueue&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;LinkedBlockingQueue 内部是用链表实现的，长度默认是可以无限延长的。&lt;br /&gt;由于 </summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="阻塞队列" scheme="http://example.com/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>阻塞队列 常见阻塞队列</title>
+    <link href="http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E5%B8%B8%E8%A7%81%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/"/>
+    <id>http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E5%B8%B8%E8%A7%81%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/</id>
+    <published>2022-12-04T15:30:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="tf0MQ"></a></p><h4 id="ArrayBlockingQueue"><a href="#ArrayBlockingQueue" class="headerlink" title="ArrayBlockingQueue"></a>ArrayBlockingQueue</h4><p>典型的有界队列，其内部是用数组存储元素的，利用 ReentrantLock 实现线程安全。<br />创建时就需要指定容量，之后也不可以再扩容了，在构造函数中可以指定是否是公平的。如果被设置为非公平的，那么就存在插队的可能；如果设置为公平的，那么等待了最长时间的线程会被优先处理，其他线程不允许插队，不过这样的公平策略同时会带来一定的性能损耗，因为非公平的吞吐量通常会高于公平的情况。<br><a name="uFOlm"></a></p><h4 id="LinkedBlockingQueue"><a href="#LinkedBlockingQueue" class="headerlink" title="LinkedBlockingQueue"></a>LinkedBlockingQueue</h4><p>内部用链表实现的 BlockingQueue。如果不指定初始容量，那么容量默认就为整型的最大值 ，由于这个数非常大，通常不可能放入这么多的数据，所以 LinkedBlockingQueue 也被称作无界队列，代表它几乎没有界限。<br><a name="skSHc"></a></p><h4 id="SynchronousQueue"><a href="#SynchronousQueue" class="headerlink" title="SynchronousQueue"></a>SynchronousQueue</h4><p>最大的不同之处在于，它的容量为 0，所以没有一个地方来暂存元素，导致每次取数据都要先阻塞，直到有数据被放入；同理，每次放数据的时候也会阻塞，直到有消费者来取。<br />需要注意的是，SynchronousQueue 的容量不是 1 而是 0，因为 SynchronousQueue 不需要去持有元素，它所做的就是直接传递。由于每当需要传递的时候，SynchronousQueue 会把元素直接从生产者传给消费者，在此期间并不需要做存储，所以如果运用得当，它的效率是很高的。<br><a name="MTPH0"></a></p><h4 id="PriorityBlockingQueue"><a href="#PriorityBlockingQueue" class="headerlink" title="PriorityBlockingQueue"></a>PriorityBlockingQueue</h4><p>是一个支持优先级的无界阻塞队列，可以通过自定义类实现 compareTo() 方法来指定元素排序规则，或者初始化时通过构造器参数 Comparator 来指定排序规则。同时，插入队列的对象必须是可比较大小的，也就是 Comparable 的，否则会抛出异常。<br><a name="cJ9OT"></a></p><h4 id="DelayQueue"><a href="#DelayQueue" class="headerlink" title="DelayQueue"></a>DelayQueue</h4><p>这个队列比较特殊，具有“延迟”的功能。可以设定让队列中的任务延迟多久之后执行，比如 10 秒钟之后执行，这在例如 “30 分钟后未付款自动取消订单” 等需要延迟执行的场景中被大量使用。<br />它是无界队列，放入的元素必须实现 Delayed 接口，而 Delayed 接口又继承了 Comparable 接口，所以自然就拥有了比较和排序的能力。元素会根据延迟时间的长短被放到队列的不同位置，越靠近队列头代表越早过期。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;tf0MQ&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;ArrayBlockingQueue&quot;&gt;&lt;a href=&quot;#ArrayBlockingQueue&quot; class=&quot;headerlink&quot; title=&quot;ArrayBlockingQueue&quot;&gt;&lt;/a&gt;Arra</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="阻塞队列" scheme="http://example.com/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>阻塞队列 阻塞队列常用方法</title>
+    <link href="http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95/"/>
+    <id>http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95/</id>
+    <published>2022-12-04T15:20:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p>三组方法功能很类似，区别仅在于特殊情况：当队列满了无法添加元素，或者是队列空了无法移除元素时，不同组的方法对于这种特殊情况会有不同的处理方式。<br><a name="kVdZ7"></a></p><h4 id="抛出异常"><a href="#抛出异常" class="headerlink" title="抛出异常"></a>抛出异常</h4><p>add 方法是往队列里添加一个元素，如果队列满了，就会抛出异常来提示队列已满。<br />remove 方法的作用是删除元素，如果删除的队列是空的，由于里面什么都没有，所以也无法删除任何元素，那么 remove 方法就会抛出异常。<br />element 方法是返回队列的头部节点，但是并不删除。如果用这个方法去操作一个空队列，想获取队列的头结点，可是由于队列是空的，什么都获取不到，会抛出异常。<br><a name="vGfzJ"></a></p><h4 id="返回结果但不抛出异常"><a href="#返回结果但不抛出异常" class="headerlink" title="返回结果但不抛出异常"></a>返回结果但不抛出异常</h4><p>offer 方法用来插入一个元素，并用返回值来提示插入是否成功。如果添加成功会返回 true，而如果队列已经满了，此时继续调用 offer 方法的话，不会抛出异常，只会返回一个错误提示：false。<br />poll 方法作用是移除并返回队列的头节点，但是如果当队列里面是空的，没有任何东西可以移除的时候，便会返回 null 作为提示。因此是不允许往队列中插入 null 的，否则没有办法区分返回的 null 是一个提示还是一个真正的元素。<br />offer 和 poll 都有带超时时间的重载方法。如果到了超时时间依旧没有成功才返回。<br />peek 方法作用是返回队列的头元素但并不删除。如果队列里面是空的，它便会返回 null 作为提示。<br><a name="SOXZV"></a></p><h4 id="阻塞"><a href="#阻塞" class="headerlink" title="阻塞"></a>阻塞</h4><p>put 方法的作用是插入元素。通常在队列没满的时候是正常的插入，但是如果队列已满就无法继续插入，这时它既不会立刻返回 false 也不会抛出异常，而是让插入的线程陷入阻塞状态，直到队列里有了空闲空间，此时队列就会让之前的线程解除阻塞状态，并把刚才那个元素添加进去。<br />take 方法的作用是获取并移除队列的头结点。通常在队列里有数据的时候会正常取出数据并删除；但是如果执行 take 的时候队列里无数据，则阻塞，直到队列里有数据；一旦队列里有数据了，就会立刻解除阻塞状态，并且取到数据。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;三组方法功能很类似，区别仅在于特殊情况：当队列满了无法添加元素，或者是队列空了无法移除元素时，不同组的方法对于这种特殊情况会有不同的处理方式。&lt;br&gt;&lt;a name=&quot;kVdZ7&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;抛出异常&quot;&gt;&lt;a href=&quot;#抛出异常&quot; class=&quot;</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="阻塞队列" scheme="http://example.com/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>阻塞队列 阻塞队列概述</title>
+    <link href="http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/"/>
+    <id>http://example.com/2022/12/04/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%20%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/</id>
+    <published>2022-12-04T15:10:00.000Z</published>
+    <updated>2023-01-09T18:38:16.286Z</updated>
+    
+    <content type="html"><![CDATA[<p><a name="z5hIp"></a></p><h4 id="作用"><a href="#作用" class="headerlink" title="作用"></a>作用</h4><p>BlockingQueue 是线程安全的，在很多场景下可以利用线程安全的队列来优雅地解决业务自身的线程安全问题。生产者线程把生产出来的结果放到阻塞队列中，消费者也会从阻塞队列中取出所需要的内容并进行处理。因为阻塞队列是线程安全的，所以生产者和消费者都可以是多线程的，不会发生线程安全问题。<br />队列还能起到一个隔离的作用。比如说开发一个银行转账的程序，那么生产者线程不需要关心具体的转账逻辑，只需要把转账任务，如账户和金额等信息放到队列中就可以，而不需要去关心银行这个类如何实现具体的转账业务。而作为银行这个类来讲，会去从队列里取出来将要执行的具体的任务，再去通过自己的各种方法来完成本次转账。这样就实现了具体任务与执行任务类之间的解耦，任务被放在了阻塞队列中，而负责放任务的线程是无法直接访问到银行具体实现转账操作的对象的，实现了隔离，提高了安全性。<br><a name="noF3b"></a></p><h4 id="主要并发队列"><a href="#主要并发队列" class="headerlink" title="主要并发队列"></a>主要并发队列</h4><p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/25368844/1671325324441-acefe215-60a5-4969-ac94-48d64e5ae39b.jpeg#averageHue=%23f1f1ea&clientId=ue785f1e8-bc84-4&crop=0&crop=0&crop=1&crop=1&from=drop&id=u18ef4219&margin=%5Bobject%20Object%5D&name=1593314663459-41fa8d1b-f10e-4712-a5b3-e3219dff3990.jpg&originHeight=497&originWidth=1864&originalType=binary&ratio=1&rotation=0&showTitle=false&size=108893&status=done&style=none&taskId=u1f1ae93e-7bcb-4aaa-8566-d8b63377cfb&title=" alt="1593314663459-41fa8d1b-f10e-4712-a5b3-e3219dff3990.jpg"><br />Java 提供的线程安全的队列分为阻塞队列和非阻塞队列两大类。<br />阻塞队列的典型例子就是 BlockingQueue 接口的实现类。<br />非阻塞并发队列的典型例子是 ConcurrentLinkedQueue，这个类不会让线程阻塞，利用 CAS 保证了线程安全。适合用在不需要阻塞功能，且并发不是特别剧烈的场景。<br><a name="bf4OA"></a></p><h4 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h4><p>阻塞功能使得生产者和消费者两端的能力得以平衡，当有任何一端速度过快时，阻塞队列便会把速度给降下来。<br />take 方法的功能是获取并移除队列的头结点，通常在队列里有数据的时候是可以正常移除的。可是一旦执行 take 方法的时候，队列里无数据，则阻塞，直到队列里有数据。一旦队列里有数据了，就会立刻解除阻塞状态，并且取到数据。<br />put 方法插入元素时，如果队列没有满，那就和普通的插入一样是正常的插入，但是如果队列已满，那么就无法继续插入，则阻塞，直到队列里有了空闲空间。如果后续队列有了空闲空间，比如消费者消费了一个元素，那么此时队列就会解除阻塞状态，并把需要添加的数据添加到队列中。<br />阻塞队列还有一个非常重要的属性，那就是容量的大小，分为有界和无界两种。<br />无界队列意味着里面可以容纳非常多的元素，可以近似认为是无限容量。但是有的阻塞队列是有界的，一旦满了就无法再往里放数据了。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;a name=&quot;z5hIp&quot;&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h4 id=&quot;作用&quot;&gt;&lt;a href=&quot;#作用&quot; class=&quot;headerlink&quot; title=&quot;作用&quot;&gt;&lt;/a&gt;作用&lt;/h4&gt;&lt;p&gt;BlockingQueue 是线程安全的，在很多场景下可以利用线程安全的队列来优雅地</summary>
+      
+    
+    
+    
+    <category term="并发编程" scheme="http://example.com/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/"/>
+    
+    
+    <category term="阻塞队列" scheme="http://example.com/tags/%E9%98%BB%E5%A1%9E%E9%98%9F%E5%88%97/"/>
+    
+  </entry>
+  
+</feed>
