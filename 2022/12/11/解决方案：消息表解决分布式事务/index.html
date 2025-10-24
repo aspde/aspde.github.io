@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>解决方案：消息表解决分布式事务 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在内存里面合并一个队列，异步线程轮询这个队列，此时所有用户线程处于挂起状态，如果异步线程挂掉了，对于上游客户端来说超时了，此时有两种情况，异步线程可能执行成功，也可能执行失败，上游不知道库存有没有扣减成功，上游的订单状态变成已扣减库存还是没有扣减库存都有问题，本质上是一个分布式事务的问题。 分布式事务事务从狭义上来讲就是 ACID（原子性，一致性，隔离性，持久性）的特性，广义上的事务，尤其是在分布">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决方案：消息表解决分布式事务">
+<meta property="og:url" content="http://example.com/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B6%88%E6%81%AF%E8%A1%A8%E8%A7%A3%E5%86%B3%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="在内存里面合并一个队列，异步线程轮询这个队列，此时所有用户线程处于挂起状态，如果异步线程挂掉了，对于上游客户端来说超时了，此时有两种情况，异步线程可能执行成功，也可能执行失败，上游不知道库存有没有扣减成功，上游的订单状态变成已扣减库存还是没有扣减库存都有问题，本质上是一个分布式事务的问题。 分布式事务事务从狭义上来讲就是 ACID（原子性，一致性，隔离性，持久性）的特性，广义上的事务，尤其是在分布">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-11T10:30:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.873Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="解决方案">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B6%88%E6%81%AF%E8%A1%A8%E8%A7%A3%E5%86%B3%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '解决方案：消息表解决分布式事务',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">解决方案：消息表解决分布式事务</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-11T10:30:00.000Z" title="发表于 2022-12-11 10:30:00">2022-12-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.873Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>在内存里面合并一个队列，异步线程轮询这个队列，此时所有用户线程处于挂起状态，如果异步线程挂掉了，对于上游客户端来说超时了，此时有两种情况，异步线程可能执行成功，也可能执行失败，上游不知道库存有没有扣减成功，上游的订单状态变成已扣减库存还是没有扣减库存都有问题，本质上是一个分布式事务的问题。<br><a name="RPyq3"></a></p>
+<h4 id="分布式事务"><a href="#分布式事务" class="headerlink" title="分布式事务"></a>分布式事务</h4><p>事务从狭义上来讲就是 ACID（原子性，一致性，隔离性，持久性）的特性，广义上的事务，尤其是在分布式的环境下更多强调它的原子性。<br />在没有网络隔离的本地事务由内存总线和数据库的连接来保证本地事务的原子性，但是在分布式环境下由于网络隔离的不可靠性，没办法统一协调、同步各个节点成功失败的状态。需要在多进程环境下引入一个协调器，同步多个节点的状态和统一多个节点的行为，要么一起成功，要么一起失败，注意同时并不是严格意义上的同时，是有先后关系的，这也是弱一致性的由来。<br><a name="Ampsw"></a></p>
+<h4 id="节点同步"><a href="#节点同步" class="headerlink" title="节点同步"></a>节点同步</h4><p>节点的同步类型分为两种：阻塞式和非阻塞式，区别在于一致性的时间开销和资源消耗的对比，互联网的业务场景下对性能的要求往往比对一致性的要求要高，所以一般采用的是弱一致的解决方案，尽量避免某一个节点因为网络不稳定导致其他节点的资源都被锁定的情况，这种情况会导致性能急剧降低。<br />对于多节点行为上的同步，要么全成功，要么全失败，协调多个节点执行本地事务，其中一个节点失败，是把之前的事务都回滚还是让后面的事务不断地重试？<br />需要根据具体的业务进行选择，比如下单的链路，包含订单的更新和库存的扣减，先更新订单状态，再去扣减库存，库存扣减失败了，不断地重试意义不大，因为可能就是没有库存了，再怎么重试都是没有库存的，只会增加系统的开销，这种情况一般采用回退的机制，把订单状态回滚回去相比于不断地扣减已经不存在的库存，回滚成功的概率会更高一些。比如物流服务，发完货了之后要更新订单的状态，发货已经执行成功了，更新订单因为网络原因超时了，这样可以不断地重试，因为更新状态是没有资源争抢的，这种业务适合不断地重试来达到最终一致的状态。<br />遇到非业务上的错误，比如网络超时，可以参考一下 seata，每一个节点有一个本地事务提交表，这个流水表里面记录了每一次事务提交的唯一标识，根据这个标识不管是回退还是重试，本地有没有成功执行事务，都根据流水表进行判断。有一种极端的情况，比如本地的机器 FullGC，此时还没有写入流水表，上游的回退或重试消息已经过来了，认为本地没有执行成功，消息就会被忽略。<br><a name="LNYKT"></a></p>
+<h4 id="具体实现"><a href="#具体实现" class="headerlink" title="具体实现"></a>具体实现</h4><p>回退和不断重试都可以采用 MQ，MQ 的好处：解耦，异步，有一定的堆积能力，支持重试，但是重试是有上限的，超过了一定上限会放到死信队列里面，对于这种死信队列一般都是业务上有逻辑性的问题导致一直重试不成功，这种就需要人工介入了。<br />本地事务加消息表的形式发 MQ 有一种极端场景：本地事务已经执行成功了，此时还没有发消息，机器挂掉了，此时也会造成不一致。可以用本地事务保证，写入一张消息表，再用定时任务不断轮询消息表，不停重试，重试达到一定上限之后会发出告警，通知哪一个消息失败了，用页面展示消息表，在列表上每一条消息后面加一个按钮用来手工的重试，因为有些就是业务上的 bug 导致重试一直不成功，此时等 bug 修完之后只要人工再点一下就能够重试成功了，经常说的分布式事务最后一步人工兜底就是这么做的。<br />分布式事务没有完美的解决方案，尽量在做服务拆分的时候把原子性的操作放在单进程，单数据库里面去执行，由本地事务来保证 ACID。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/">解决方案</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-full"><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%90%88%E5%B9%B6%E9%98%9F%E5%88%97%E7%A7%92%E6%9D%80/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">解决方案：合并队列秒杀</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9ASpring%20%E5%BC%82%E6%AD%A5%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="解决方案：Spring 异步线程池"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：Spring 异步线程池</div></div></a></div><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E4%BA%8B%E5%8A%A1%E5%9B%9E%E8%B0%83%E7%BC%96%E7%A8%8B/" title="解决方案：事务回调编程"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：事务回调编程</div></div></a></div><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%90%88%E5%B9%B6%E9%98%9F%E5%88%97%E7%A7%92%E6%9D%80/" title="解决方案：合并队列秒杀"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：合并队列秒杀</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1"><span class="toc-number">1.</span> <span class="toc-text">分布式事务</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%8A%82%E7%82%B9%E5%90%8C%E6%AD%A5"><span class="toc-number">2.</span> <span class="toc-text">节点同步</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B7%E4%BD%93%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.</span> <span class="toc-text">具体实现</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>并发基础：ThreadLocal | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="命名含义：每个 Thread 内都有自己的实例副本，且该副本只能由当前 Thread 访问到并使用，相当于每个线程内部的本地变量。 使用场景 用作保存每个线程独享的对象，为每个线程都创建一个副本，这样每个线程都可以修改自己所拥有的副本, 而不会影响其他线程的副本，确保了线程安全。 用作每个线程内需要独立保存信息，以便供其他方法更方便地获取该信息的场景。每个线程获取到的信息可能都是不一样的，前面执行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发基础：ThreadLocal">
+<meta property="og:url" content="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9AThreadLocal/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="命名含义：每个 Thread 内都有自己的实例副本，且该副本只能由当前 Thread 访问到并使用，相当于每个线程内部的本地变量。 使用场景 用作保存每个线程独享的对象，为每个线程都创建一个副本，这样每个线程都可以修改自己所拥有的副本, 而不会影响其他线程的副本，确保了线程安全。 用作每个线程内需要独立保存信息，以便供其他方法更方便地获取该信息的场景。每个线程获取到的信息可能都是不一样的，前面执行">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-04T11:10:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.870Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="并发基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9AThreadLocal/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '并发基础：ThreadLocal',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">并发基础：ThreadLocal</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-04T11:10:00.000Z" title="发表于 2022-12-04 11:10:00">2022-12-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.870Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>命名含义：每个 Thread 内都有自己的实例副本，且该副本只能由当前 Thread 访问到并使用，相当于每个线程内部的本地变量。<br><a name="qtsq1"></a></p>
+<h4 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h4><ul>
+<li>用作保存每个线程独享的对象，为每个线程都创建一个副本，这样每个线程都可以修改自己所拥有的副本, 而不会影响其他线程的副本，确保了线程安全。</li>
+<li>用作每个线程内需要独立保存信息，以便供其他方法更方便地获取该信息的场景。每个线程获取到的信息可能都是不一样的，前面执行的方法保存了信息后，后续方法可以通过 ThreadLocal 直接获取到，避免了传参，类似于全局变量的概念。<br><a name="bYIaA"></a></li>
+</ul>
+<h5 id="典型场景-1"><a href="#典型场景-1" class="headerlink" title="典型场景 1"></a>典型场景 1</h5><p>这种场景通常用于保存线程不安全的工具类，典型的需要使用的类就是 SimpleDateFormat。<br><a name="tovLL"></a></p>
+<h5 id="典型场景-2"><a href="#典型场景-2" class="headerlink" title="典型场景 2"></a>典型场景 2</h5><p>每个线程内需要保存类似于全局变量的信息（例如在拦截器中获取的用户信息），可以让不同方法直接使用，避免参数传递麻烦的同时又不会被多线程共享（因为不同线程获取到的用户信息不一样）。<br><a name="gYuzz"></a></p>
+<h4 id="和-synchronized-的关系"><a href="#和-synchronized-的关系" class="headerlink" title="和 synchronized 的关系"></a>和 synchronized 的关系</h4><p>当 ThreadLocal 用于解决线程安全问题的时候，也就是把一个对象给每个线程都生成一份独享的副本的，在这种场景下，ThreadLocal 和 synchronized 都可以理解为是用来保证线程安全的手段，但是效果和实现原理不同。</p>
+<ul>
+<li>ThreadLocal 是通过让每个线程独享自己的副本，避免了资源的竞争；</li>
+<li>synchronized 主要用于临界资源的分配，在同一时刻限制最多只有一个线程能访问该资源。</li>
+</ul>
+<p>相比于 ThreadLocal 而言，synchronized 的效率会更低一些，但是花费的内存也更少。在这种场景下，ThreadLocal 和 synchronized 虽然有不同的效果，不过都可以达到线程安全的目的。<br />对于 ThreadLocal 而言，它还有不同的使用场景。比如当 ThreadLocal 用于让多个类能更方便地拿到每个线程独立保存这个信息的场景下时，在这种场景下，ThreadLocal 侧重的是避免传参，所以此时 ThreadLocal 和 synchronized 是两个不同维度的工具。<br><a name="AEnlK"></a></p>
+<h4 id="Thread、ThreadLocal-及-ThreadLocalMap-三者间关系"><a href="#Thread、ThreadLocal-及-ThreadLocalMap-三者间关系" class="headerlink" title="Thread、ThreadLocal 及 ThreadLocalMap 三者间关系"></a>Thread、ThreadLocal 及 ThreadLocalMap 三者间关系</h4><p>每个 Thread 对象中都持有一个 ThreadLocalMap 类型的成员变量，而这个 ThreadLocalMap 自身类似于是一个 Map，里面会有一个个 key value 形式的键值对。key 是 ThreadLocal 的引用，value 是 ThreadLocal 存储的内容。<br />一个 Thread 里面只有一个 ThreadLocalMap ，而在一个 ThreadLocalMap 里面却可以有很多的 ThreadLocal，每一个 ThreadLocal 都对应一个 value。因为一个 Thread 是可以调用多个 ThreadLocal 的，所以 Thread 内部就采用了 ThreadLocalMap 这样 Map 的数据结构来存放 ThreadLocal 和 value。<br><a name="sQIzB"></a></p>
+<h4 id="内存泄漏"><a href="#内存泄漏" class="headerlink" title="内存泄漏"></a>内存泄漏</h4><p><a name="HS7cN"></a></p>
+<h5 id="Key-的泄漏"><a href="#Key-的泄漏" class="headerlink" title="Key 的泄漏"></a>Key 的泄漏</h5><p>在业务代码中执行 ThreadLocal instance &#x3D; null 操作，想清理掉这个 ThreadLocal 实例，但是假设在ThreadLocalMap 的 Entry 中强引用了 ThreadLocal 实例，那么虽然在业务代码中把 ThreadLocal 实例置为了 null，但是在 Thread 类中依然有这个引用链的存在。<br />GC 在垃圾回收的时候会进行可达性分析，它会发现这个 ThreadLocal 对象依然是可达的，所以对于这个 ThreadLocal 对象不会进行垃圾回收，这样的话就造成了内存泄漏的情况。<br />JDK 开发者考虑到了这一点，所以 ThreadLocalMap 中的 Entry 继承了 WeakReference 弱引用。<br />弱引用的特点是，如果这个对象只被弱引用关联，而没有任何强引用关联，那么这个对象就可以被回收，所以弱引用不会阻止 GC。因此，这个弱引用的机制就避免了 ThreadLocal 的内存泄露问题。<br><a name="h3HE2"></a></p>
+<h5 id="Value-的泄漏"><a href="#Value-的泄漏" class="headerlink" title="Value 的泄漏"></a>Value 的泄漏</h5><p>具体的引用链路（实线代表强引用，虚线代表弱引用）<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671539934268-fb11935a-5f60-439a-b909-b86a37732bf4.png#averageHue=%23c3c7d9&clientId=u75e4ed64-1b66-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=212&id=ua942aa4b&margin=%5Bobject%20Object%5D&name=1593316791177-c666aa25-fb7b-4969-85ec-2b9af570f394.png&originHeight=342&originWidth=1168&originalType=binary&ratio=1&rotation=0&showTitle=false&size=52148&status=done&style=none&taskId=ue089351b-7a51-4b50-96f6-aeefd946a94&title=&width=723"><br />左侧是引用栈，栈里面有一个 ThreadLocal 的引用和一个线程的引用，右侧是堆，在堆中是对象的实例。<br />重点看一下下面这条链路：Current Thread Ref → Current Thread → ThreadLocalMap → Entry → Value → 可能泄漏的 value 实例。<br />这条链路是随着线程的存在而一直存在的，如果线程执行耗时任务而不停止，那么当垃圾回收进行可达性分析的时候，这个 Value 就是可达的，所以不会被回收。但是与此同时可能已经完成了业务逻辑处理，不再需要这个Value 了，此时也就发生了内存泄漏问题。<br />JDK 同样也考虑到了这个问题，在执行 ThreadLocal 的 set、remove、rehash 等方法时，它都会扫描 key 为 null 的 Entry，如果发现某个 Entry 的 key 为 null，则代表它所对应的 value 也没有作用了，所以它就会把对应的 value 置为 null，这样，value 对象就可以被正常回收了。<br />但是假设 ThreadLocal 已经不被使用了，那么实际上 set、remove、rehash 方法也不会被调用，与此同时，如果这个线程又一直存活、不终止的话，那么刚才的那个调用链就一直存在，也就导致了 value 的内存泄漏。<br><a name="CFHl4"></a></p>
+<h5 id="避免内存泄露"><a href="#避免内存泄露" class="headerlink" title="避免内存泄露"></a>避免内存泄露</h5><p>解决方法：调用 ThreadLocal 的 remove 方法，就可以删除对应的 value 对象，可以避免内存泄漏。<br />所以在使用完 ThreadLocal 之后，应该手动去调用它的 remove 方法，目的是防止内存泄漏的发生。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80/">并发基础</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E6%AD%BB%E9%94%81/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">并发基础：死锁</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%9F%B3%EF%BC%9ACAS/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">并发基石：CAS</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9Asynchronized%20%E5%85%B3%E9%94%AE%E5%AD%97/" title="并发基础：synchronized 关键字"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：synchronized 关键字</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9Avolatile%20%E5%85%B3%E9%94%AE%E5%AD%97/" title="并发基础：volatile 关键字"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：volatile 关键字</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E5%88%9B%E5%BB%BA%E5%81%9C%E6%AD%A2%E7%BA%BF%E7%A8%8B/" title="并发基础：创建停止线程"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：创建停止线程</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E6%AD%BB%E9%94%81/" title="并发基础：死锁"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：死锁</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%BC%8F/" title="并发基础：生产者消费者模式"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：生产者消费者模式</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E7%BA%BF%E7%A8%8B%E5%85%AD%E7%A7%8D%E7%8A%B6%E6%80%81%E5%8F%8A%E8%BD%AC%E6%8D%A2/" title="并发基础：线程六种状态及转换"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：线程六种状态及转换</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF-1"><span class="toc-number">1.1.</span> <span class="toc-text">典型场景 1</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF-2"><span class="toc-number">1.2.</span> <span class="toc-text">典型场景 2</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%92%8C-synchronized-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="toc-number">2.</span> <span class="toc-text">和 synchronized 的关系</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Thread%E3%80%81ThreadLocal-%E5%8F%8A-ThreadLocalMap-%E4%B8%89%E8%80%85%E9%97%B4%E5%85%B3%E7%B3%BB"><span class="toc-number">3.</span> <span class="toc-text">Thread、ThreadLocal 及 ThreadLocalMap 三者间关系</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%86%85%E5%AD%98%E6%B3%84%E6%BC%8F"><span class="toc-number">4.</span> <span class="toc-text">内存泄漏</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#Key-%E7%9A%84%E6%B3%84%E6%BC%8F"><span class="toc-number">4.1.</span> <span class="toc-text">Key 的泄漏</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Value-%E7%9A%84%E6%B3%84%E6%BC%8F"><span class="toc-number">4.2.</span> <span class="toc-text">Value 的泄漏</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%86%85%E5%AD%98%E6%B3%84%E9%9C%B2"><span class="toc-number">4.3.</span> <span class="toc-text">避免内存泄露</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

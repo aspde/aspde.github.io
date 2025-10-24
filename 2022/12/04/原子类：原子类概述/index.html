@@ -1,0 +1,224 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>原子类：原子类概述 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="具有原子性的类，可以原子性地执行添加、递增、递减等操作。比如之前多线程下的线程不安全的 i++ 问题，到了原子类这里，就可以用功能相同且线程安全的 getAndIncrement 方法来优雅地解决。相比于锁的优势：  粒度更细：原子变量可以把竞争范围缩小到变量级别，通常情况下，锁的粒度都要大于原子变量的粒度； 效率更高：除了高度竞争的情况之外，使用原子类的效率通常会比使用同步互斥锁的效率更高，因为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="原子类：原子类概述">
+<meta property="og:url" content="http://example.com/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9A%E5%8E%9F%E5%AD%90%E7%B1%BB%E6%A6%82%E8%BF%B0/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="具有原子性的类，可以原子性地执行添加、递增、递减等操作。比如之前多线程下的线程不安全的 i++ 问题，到了原子类这里，就可以用功能相同且线程安全的 getAndIncrement 方法来优雅地解决。相比于锁的优势：  粒度更细：原子变量可以把竞争范围缩小到变量级别，通常情况下，锁的粒度都要大于原子变量的粒度； 效率更高：除了高度竞争的情况之外，使用原子类的效率通常会比使用同步互斥锁的效率更高，因为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-04T12:10:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.870Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="原子类">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9A%E5%8E%9F%E5%AD%90%E7%B1%BB%E6%A6%82%E8%BF%B0/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '原子类：原子类概述',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">原子类：原子类概述</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-04T12:10:00.000Z" title="发表于 2022-12-04 12:10:00">2022-12-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.870Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>具有原子性的类，可以原子性地执行添加、递增、递减等操作。比如之前多线程下的线程不安全的 i++ 问题，到了原子类这里，就可以用功能相同且线程安全的 getAndIncrement 方法来优雅地解决。<br />相比于锁的优势：</p>
+<ul>
+<li>粒度更细：原子变量可以把竞争范围缩小到变量级别，通常情况下，锁的粒度都要大于原子变量的粒度；</li>
+<li>效率更高：除了高度竞争的情况之外，使用原子类的效率通常会比使用同步互斥锁的效率更高，因为原子类底层利用了 CAS 操作，不会阻塞线程。<br><a name="F362B"></a></li>
+</ul>
+<h4 id="6-类原子类"><a href="#6-类原子类" class="headerlink" title="6 类原子类"></a>6 类原子类</h4><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>具体类</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Atomic* 基本类型原子类</td>
+<td>AtomicInteger、AtomicLong、AtomicBoolean</td>
+</tr>
+<tr>
+<td>Atomic*Array 数组类型原子类</td>
+<td>AtomicIntegerArray、AtomicLongArray、AtomicReferenceArray</td>
+</tr>
+<tr>
+<td>Atomic*Reference 引用类型原子类</td>
+<td>AtomicReference、AtomicStampedReference、AtomicMarkableReference</td>
+</tr>
+<tr>
+<td>Atomic*FieldUpdater 升级类型原子类</td>
+<td>AtomicIntegerfieldupdater、AtomicLongFieldUpdater、AtomicReferenceFieldUpdater</td>
+</tr>
+<tr>
+<td>Adder 累加器</td>
+<td>LongAdder、DoubleAdder</td>
+</tr>
+<tr>
+<td>Accumulator 积累器</td>
+<td>LongAccumulator、DoubleAccumulator</td>
+</tr>
+</tbody></table>
+<p><a name="mozgP"></a></p>
+<h4 id="Atomic-基本类型原子类"><a href="#Atomic-基本类型原子类" class="headerlink" title="Atomic\ 基本类型原子类"></a>Atomic\ 基本类型原子类</h4><p>AtomicInteger 是对于 int 类型的封装，并且提供了原子性的访问和更新。如果需要一个整型的变量，并且这个变量会被运用在并发场景之下，可以使用 AtomicInteger，这样一来就自动具备了原子能力，使用起来非常方便。<br><a name="7d8542aa"></a></p>
+<h4 id="Array-数组类型原子类"><a href="#Array-数组类型原子类" class="headerlink" title="Array 数组类型原子类"></a>Array 数组类型原子类</h4><p>数组里的元素，都可以保证其原子性，比如 AtomicIntegerArray 相当于把 AtomicInteger 聚合起来，组合成一个数组。这样一来如果想用一个每一个元素都具备原子性的数组的话， 就可以使用 Atomic*Array。</p>
+<ul>
+<li>AtomicIntegerArray：整形数组原子类；</li>
+<li>AtomicLongArray：长整形数组原子类；</li>
+<li>AtomicReferenceArray ：引用类型数组原子类。<br><a name="PHKIj"></a></li>
+</ul>
+<h4 id="Atomic-Reference-引用类型原子类"><a href="#Atomic-Reference-引用类型原子类" class="headerlink" title="Atomic\Reference 引用类型原子类"></a>Atomic\Reference 引用类型原子类</h4><p>AtomicReference 类的作用和 AtomicInteger 并没有本质区别， AtomicInteger 可以让一个整数保证原子性，而 AtomicReference 可以让一个对象保证原子性。这样一来，AtomicReference 的能力明显比 AtomicInteger 强，因为一个对象里可以包含很多属性。</p>
+<ul>
+<li>AtomicStampedReference：它是对 AtomicReference 的升级，在此基础上还加了时间戳，用于解决 CAS 的 ABA 问题；</li>
+<li>AtomicMarkableReference：和 AtomicReference 类似，多了一个绑定的布尔值，可以用于表示该对象已删除等场景。<br><a name="omqeF"></a></li>
+</ul>
+<h4 id="Atomic-FieldUpdater-原子更新器"><a href="#Atomic-FieldUpdater-原子更新器" class="headerlink" title="Atomic\FieldUpdater 原子更新器"></a>Atomic\FieldUpdater 原子更新器</h4><ul>
+<li>AtomicIntegerFieldUpdater：原子更新整形的更新器；</li>
+<li>AtomicLongFieldUpdater：原子更新长整形的更新器；</li>
+<li>AtomicReferenceFieldUpdater：原子更新引用的更新器。</li>
+</ul>
+<p>如果之前已经有了一个变量，比如是整型的 int，实际它并不具备原子性。可是这个变量已经被定义好了，此时可以利用 Atomic*FieldUpdater 让它拥有原子性，如果它是整型的，就使用 AtomicIntegerFieldUpdater 把已经声明的变量进行升级，这样一来这个变量就拥有了 CAS 操作的能力。<br />使用场景：</p>
+<ul>
+<li>出于历史原因考虑，之前这个变量已经被声明过了而且被广泛运用，那么修改它成本很高，所以可以利用升级的原子类；</li>
+<li>如果在大部分情况下并不需要使用到它的原子性，只在少数情况，比如每天只有定时一两次需要原子操作的话，其实没有必要把原来的变量声明为原子类型的变量，因为 AtomicInteger 比普通的变量更加耗费资源。所以如果有成千上万个原子类的实例的话，它占用的内存也会远比成千上万个普通类型占用的内存高。所以在这种情况下，可以利用 AtomicIntegerFieldUpdater 进行合理升级，节约内存。<br><a name="DMs8A"></a></li>
+</ul>
+<h4 id="Adder-加法器"><a href="#Adder-加法器" class="headerlink" title="Adder 加法器"></a>Adder 加法器</h4><p>有两种加法器，分别是 LongAdder 和 DoubleAdder。<br><a name="s3vvF"></a></p>
+<h4 id="Accumulator-积累器"><a href="#Accumulator-积累器" class="headerlink" title="Accumulator 积累器"></a>Accumulator 积累器</h4><p>有两种积累器，分别是 LongAccumulator 和 DoubleAccumulator。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%8E%9F%E5%AD%90%E7%B1%BB/">原子类</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/04/%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%9Ahappens-before%20%E8%A7%84%E5%88%99/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">内存模型：happens-before 规则</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9ALongAdder/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">原子类：LongAdder</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9AAdder%20%E5%92%8C%20Accumulator%20%E5%8C%BA%E5%88%AB/" title="原子类：Adder 和 Accumulator 区别"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">原子类：Adder 和 Accumulator 区别</div></div></a></div><div><a href="/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9AAtomicInteger%20%E5%92%8C%20synchronized%20%E5%BC%82%E5%90%8C/" title="原子类：AtomicInteger 和 synchronized 异同"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">原子类：AtomicInteger 和 synchronized 异同</div></div></a></div><div><a href="/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9ALongAdder/" title="原子类：LongAdder"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">原子类：LongAdder</div></div></a></div><div><a href="/2022/12/04/%E5%8E%9F%E5%AD%90%E7%B1%BB%EF%BC%9A%E5%8E%9F%E5%AD%90%E7%B1%BB%E5%92%8C%20volatile%20%E5%BC%82%E5%90%8C/" title="原子类：原子类和 volatile 异同"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">原子类：原子类和 volatile 异同</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#6-%E7%B1%BB%E5%8E%9F%E5%AD%90%E7%B1%BB"><span class="toc-number">1.</span> <span class="toc-text">6 类原子类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Atomic-%E5%9F%BA%E6%9C%AC%E7%B1%BB%E5%9E%8B%E5%8E%9F%E5%AD%90%E7%B1%BB"><span class="toc-number">2.</span> <span class="toc-text">Atomic\ 基本类型原子类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Array-%E6%95%B0%E7%BB%84%E7%B1%BB%E5%9E%8B%E5%8E%9F%E5%AD%90%E7%B1%BB"><span class="toc-number">3.</span> <span class="toc-text">Array 数组类型原子类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Atomic-Reference-%E5%BC%95%E7%94%A8%E7%B1%BB%E5%9E%8B%E5%8E%9F%E5%AD%90%E7%B1%BB"><span class="toc-number">4.</span> <span class="toc-text">Atomic\Reference 引用类型原子类</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Atomic-FieldUpdater-%E5%8E%9F%E5%AD%90%E6%9B%B4%E6%96%B0%E5%99%A8"><span class="toc-number">5.</span> <span class="toc-text">Atomic\FieldUpdater 原子更新器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Adder-%E5%8A%A0%E6%B3%95%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">Adder 加法器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Accumulator-%E7%A7%AF%E7%B4%AF%E5%99%A8"><span class="toc-number">7.</span> <span class="toc-text">Accumulator 积累器</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

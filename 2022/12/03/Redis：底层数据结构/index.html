@@ -1,0 +1,168 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>Redis：底层数据结构 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="简单动态字符串、双向链表、压缩列表、哈希表、跳表和整数数组。 简单动态字符串SDS 中 len 保存字符串的长度，O(1) 时间复杂度查询字符串长度信息。空间预分配：SDS 被修改后，程序不仅会为 SDS 分配所需要的必须空间，还会分配额外的未使用空间，减少了内存的分配。惰性空间释放：当对 SDS 进行缩短操作时，程序并不会回收多余的内存空间，而是使用 free 字段将这些字节数量记录下来不释放，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis：底层数据结构">
+<meta property="og:url" content="http://example.com/2022/12/03/Redis%EF%BC%9A%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="简单动态字符串、双向链表、压缩列表、哈希表、跳表和整数数组。 简单动态字符串SDS 中 len 保存字符串的长度，O(1) 时间复杂度查询字符串长度信息。空间预分配：SDS 被修改后，程序不仅会为 SDS 分配所需要的必须空间，还会分配额外的未使用空间，减少了内存的分配。惰性空间释放：当对 SDS 进行缩短操作时，程序并不会回收多余的内存空间，而是使用 free 字段将这些字节数量记录下来不释放，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-03T10:10:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.869Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="Redis">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/03/Redis%EF%BC%9A%E5%BA%95%E5%B1%82%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'Redis：底层数据结构',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">Redis：底层数据结构</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-03T10:10:00.000Z" title="发表于 2022-12-03 10:10:00">2022-12-03</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.869Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Redis/">Redis</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>简单动态字符串、双向链表、压缩列表、哈希表、跳表和整数数组。<br><a name="ythHY"></a></p>
+<h4 id="简单动态字符串"><a href="#简单动态字符串" class="headerlink" title="简单动态字符串"></a>简单动态字符串</h4><p><img src="https://cdn.nlark.com/yuque/0/2022/jpeg/25368844/1669850921151-5eda3cd2-a9c4-491e-9e6d-a4ac70d987e8.jpeg#averageHue=%23eef8ee&clientId=u4d08f018-dce6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=331&id=u9d5cb35e&margin=%5Bobject%20Object%5D&name=v2-5fe6c598afcc01206896ecd0f5e1a5b4_r.jpg&originHeight=415&originWidth=644&originalType=binary&ratio=1&rotation=0&showTitle=false&size=55002&status=done&style=none&taskId=u6ae84eaa-bb79-49d4-98f6-45c27c51815&title=&width=514.2000122070312"><br />SDS 中 len 保存字符串的长度，O(1) 时间复杂度查询字符串长度信息。<br />空间预分配：SDS 被修改后，程序不仅会为 SDS 分配所需要的必须空间，还会分配额外的未使用空间，减少了内存的分配。<br />惰性空间释放：当对 SDS 进行缩短操作时，程序并不会回收多余的内存空间，而是使用 free 字段将这些字节数量记录下来不释放，后面如果需要 append 操作，则直接使用 free 中未使用的空间，减少了内存的分配。<br><a name="OCYqD"></a></p>
+<h4 id="压缩列表"><a href="#压缩列表" class="headerlink" title="压缩列表"></a>压缩列表</h4><p>压缩列表类似于一个数组，数组中的每一个元素都对应保存一个数据。和数组不同的是，压缩列表在表头有三个字段zlbytes、zltail和zllen，分别表示列表长度、列表尾的偏移量和列表中的entry个数；压缩列表在表尾还有一个zlend，表示列表结束。<br />当一个列表只有少量数据的时候，并且每个列表项要么就是小整数值，要么就是长度比较短的字符串，那么 Redis 就会使用压缩列表来做列表键的底层实现。这样内存紧凑，节约内存。<br /><img src="https://cdn.nlark.com/yuque/0/2022/webp/25368844/1669849588444-5cd2a122-2b00-423c-a39e-1acf3b79ab83.webp#averageHue=%23f0f9ed&clientId=u84e22e1a-87f9-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=91&id=u5cb90190&margin=%5Bobject%20Object%5D&name=v2-a478e8c555ecd42964724f8574c81dab_720w.webp&originHeight=103&originWidth=683&originalType=binary&ratio=1&rotation=0&showTitle=false&size=9466&status=done&style=none&taskId=ue80d293d-f2d2-4da5-a2a0-5bbd3434851&title=&width=606.4000244140625"><br />在压缩列表中，如果要查找定位第一个元素和最后一个元素，可以通过表头三个字段的长度直接定位，复杂度是O(1)。而查找其他元素时，只能逐个查找，此时的复杂度就是O(N)了。<br><a name="jGzbs"></a></p>
+<h4 id="quicklist"><a href="#quicklist" class="headerlink" title="quicklist"></a>quicklist</h4><p>后续版本对列表数据结构进行了改造，使用 quicklist 代替了 ziplist 和 linkedlist。<br />quicklist 是 ziplist 和 linkedlist 的混合体，它将 linkedlist 按段切分，每一段使用 ziplist 来紧凑存储，多个 ziplist 之间使用双向指针串接起来。<br /><img src="https://cdn.nlark.com/yuque/0/2022/webp/25368844/1669850568152-315bc9eb-dc7c-45db-9011-eece766d8a44.webp#averageHue=%23efe5d2&clientId=u4d08f018-dce6-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=189&id=u7825b814&margin=%5Bobject%20Object%5D&name=v2-544d155bb86b578cd060557fa4bf7b76_720w.webp&originHeight=213&originWidth=696&originalType=binary&ratio=1&rotation=0&showTitle=false&size=39473&status=done&style=none&taskId=ufe20693e-19ae-446e-a8a3-a11811f137b&title=&width=616.7999877929688"><br><a name="a9frv"></a></p>
+<h4 id="跳表"><a href="#跳表" class="headerlink" title="跳表"></a>跳表</h4><p>跳表在链表的基础上，增加了多级索引，通过索引位置的几个跳转，实现数据的快速定位。<br /><img src="https://cdn.nlark.com/yuque/0/2022/webp/25368844/1669849428108-05db05b4-a599-4335-85c7-6f67e4b8da9e.webp#averageHue=%23f8f7eb&clientId=u84e22e1a-87f9-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=188&id=u156a8c64&margin=%5Bobject%20Object%5D&name=v2-efa7d3af8a28041f149c48a23996434a_720w.webp&originHeight=215&originWidth=699&originalType=binary&ratio=1&rotation=0&showTitle=false&size=41184&status=done&style=none&taskId=ud73be55c-f828-4bfd-b043-26d34ccd235&title=&width=610.2000122070312"><br />当数据量很大时，跳表的查找复杂度就是O(logN)。<br><a name="jr4zj"></a></p>
+<h4 id="整数数组"><a href="#整数数组" class="headerlink" title="整数数组"></a>整数数组</h4><p>当一个集合只包含整数值元素，并且这个集合的元素数量不多时，Redis 就会使用整数集合作为集合键的底层实现，节省内存。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/Redis/">Redis</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/03/Redis%EF%BC%9A%E5%85%A8%E5%B1%80%E5%93%88%E5%B8%8C%E8%A1%A8/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">Redis：全局哈希表</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/03/Redis%EF%BC%9A%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Redis：数据类型</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/03/Redis%20%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6%EF%BC%9AAOF%20%E6%97%A5%E5%BF%97/" title="Redis 持久化机制：AOF 日志"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 持久化机制：AOF 日志</div></div></a></div><div><a href="/2022/12/03/Redis%20%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6%EF%BC%9ARDB%20%E5%BF%AB%E7%85%A7/" title="Redis 持久化机制：RDB 快照"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 持久化机制：RDB 快照</div></div></a></div><div><a href="/2022/12/03/Redis%20%E6%8C%81%E4%B9%85%E5%8C%96%E6%9C%BA%E5%88%B6%EF%BC%9A%E5%A4%A7%20Key%20%E5%AF%B9%E6%8C%81%E4%B9%85%E5%8C%96%E7%9A%84%E5%BD%B1%E5%93%8D/" title="Redis 持久化机制：大 Key 对持久化的影响"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 持久化机制：大 Key 对持久化的影响</div></div></a></div><div><a href="/2022/12/03/Redis%20%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%EF%BC%9A%E5%88%87%E7%89%87%E9%9B%86%E7%BE%A4/" title="Redis 集群模式：切片集群"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 集群模式：切片集群</div></div></a></div><div><a href="/2022/12/03/Redis%20%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%EF%BC%9A%E5%93%A8%E5%85%B5%E6%9C%BA%E5%88%B6/" title="Redis 集群模式：哨兵机制"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 集群模式：哨兵机制</div></div></a></div><div><a href="/2022/12/03/Redis%20%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F%EF%BC%9A%E5%93%A8%E5%85%B5%E9%9B%86%E7%BE%A4/" title="Redis 集群模式：哨兵集群"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-03</div><div class="title">Redis 集群模式：哨兵集群</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.</span> <span class="toc-text">简单动态字符串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">压缩列表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#quicklist"><span class="toc-number">3.</span> <span class="toc-text">quicklist</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%B7%B3%E8%A1%A8"><span class="toc-number">4.</span> <span class="toc-text">跳表</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B4%E6%95%B0%E6%95%B0%E7%BB%84"><span class="toc-number">5.</span> <span class="toc-text">整数数组</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

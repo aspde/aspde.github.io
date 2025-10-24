@@ -1,0 +1,203 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>场景设计：如何保证数据库和缓存一致性？ | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在客户端请求数据时如果能在缓存中命中数据就查询缓存，不能再去查询数据库从而减轻数据库的压力，提高服务器的性能。 先更新数据库还是先更新缓存？由于引入了缓存，在数据更新时不仅要更新数据库，而且要更新缓存，这两个更新操作存在前后的问题：  先更新数据库再更新缓存； 先更新缓存再更新数据库。  先更新数据库再更新缓存举个例子比如「请求 A 」和「请求 B 」两个请求同时更新「同一条」数据可能出现这样的顺">
+<meta property="og:type" content="article">
+<meta property="og:title" content="场景设计：如何保证数据库和缓存一致性？">
+<meta property="og:url" content="http://example.com/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="在客户端请求数据时如果能在缓存中命中数据就查询缓存，不能再去查询数据库从而减轻数据库的压力，提高服务器的性能。 先更新数据库还是先更新缓存？由于引入了缓存，在数据更新时不仅要更新数据库，而且要更新缓存，这两个更新操作存在前后的问题：  先更新数据库再更新缓存； 先更新缓存再更新数据库。  先更新数据库再更新缓存举个例子比如「请求 A 」和「请求 B 」两个请求同时更新「同一条」数据可能出现这样的顺">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-10T10:30:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.870Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="场景设计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '场景设计：如何保证数据库和缓存一致性？',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">场景设计：如何保证数据库和缓存一致性？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-10T10:30:00.000Z" title="发表于 2022-12-10 10:30:00">2022-12-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.870Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>在客户端请求数据时如果能在缓存中命中数据就查询缓存，不能再去查询数据库从而减轻数据库的压力，提高服务器的性能。<br><a name="gpA3f"></a></p>
+<h4 id="先更新数据库还是先更新缓存？"><a href="#先更新数据库还是先更新缓存？" class="headerlink" title="先更新数据库还是先更新缓存？"></a>先更新数据库还是先更新缓存？</h4><p>由于引入了缓存，在数据更新时不仅要更新数据库，而且要更新缓存，这两个更新操作存在前后的问题：</p>
+<ul>
+<li>先更新数据库再更新缓存；</li>
+<li>先更新缓存再更新数据库。<br><a name="krejn"></a></li>
+</ul>
+<h5 id="先更新数据库再更新缓存"><a href="#先更新数据库再更新缓存" class="headerlink" title="先更新数据库再更新缓存"></a>先更新数据库再更新缓存</h5><p>举个例子比如「请求 A 」和「请求 B 」两个请求同时更新「同一条」数据可能出现这样的顺序：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686363063889-f11597de-f28f-4eeb-8850-72d684d45d6a.png#averageHue=%23faf7f1&clientId=u4bf596ea-1a46-4&from=paste&height=356&id=u4948bfb0&originHeight=768&originWidth=1153&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=203387&status=done&style=none&taskId=ub01cc87e-8f46-45ad-b6d4-883d0c241c0&title=&width=534.2000122070312"><br />A 请求先将数据库的数据更新为 1，然后在更新缓存前请求 B 将数据库的数据更新为 2，紧接着也把缓存更新为 2，然后 A 请求更新缓存为 1。<br />此时数据库中的数据是 2 而缓存中的数据却是 1，出现了缓存和数据库中的数据不一致的现象。<br><a name="J3SLC"></a></p>
+<h5 id="先更新缓存再更新数据库"><a href="#先更新缓存再更新数据库" class="headerlink" title="先更新缓存再更新数据库"></a>先更新缓存再更新数据库</h5><p>举个例子比如「请求 A 」和「请求 B 」两个请求同时更新「同一条」数据可能出现这样的顺序：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686363289907-f9c2aa4a-ab1f-4b64-a84e-c0d5fe05a356.png#averageHue=%23f9f5ee&clientId=u4bf596ea-1a46-4&from=paste&height=321&id=u01deda54&originHeight=623&originWidth=1122&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=190933&status=done&style=none&taskId=u4c3a2486-7d1c-4a93-8780-e8713e7ac0f&title=&width=578.2000122070312"><br />A 请求先将缓存的数据更新为 1，然后在更新数据库前 B 请求来了将缓存的数据更新为 2，紧接着把数据库更新为 2，然后 A 请求将数据库的数据更新为 1。<br />此时数据库中的数据是 1 而缓存中的数据却是 2，出现了缓存和数据库中的数据不一致的现象。<br />所以无论是「先更新数据库再更新缓存」还是「先更新缓存再更新数据库」，这两个方案都存在并发问题，当两个请求并发更新同一条数据时可能会出现缓存和数据库中的数据不一致的现象。<br><a name="ohwZl"></a></p>
+<h4 id="先更新数据库还是先删除缓存？"><a href="#先更新数据库还是先删除缓存？" class="headerlink" title="先更新数据库还是先删除缓存？"></a>先更新数据库还是先删除缓存？</h4><p>在更新数据时不更新缓存而是删除缓存中的数据。到读取数据时，发现缓存中没了数据之后再从数据库中读取数据更新到缓存中。<br />这个策略叫 Cache Aside 策略，中文是叫旁路缓存策略。<br />该策略又可以细分为「读策略」和「写策略」。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686363751293-9e9789fa-a472-42a0-990e-96f2715c8fbf.png#averageHue=%23f8f6f0&clientId=u4bf596ea-1a46-4&from=paste&height=388&id=u278bde2a&originHeight=923&originWidth=1121&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=293699&status=done&style=none&taskId=ude71ac3a-b787-4eb4-90d3-19c93c0f448&title=&width=471.20001220703125"><br />写策略的步骤：</p>
+<ul>
+<li>更新数据库中的数据；</li>
+<li>删除缓存中的数据。</li>
+</ul>
+<p>读策略的步骤：</p>
+<ul>
+<li>如果读取的数据命中了缓存就直接返回数据；</li>
+<li>如果读取的数据没有命中缓存就从数据库中读取数据，然后将数据写入到缓存并返回给用户。<br><a name="YTwH8"></a></li>
+</ul>
+<h5 id="先删除缓存再更新数据库"><a href="#先删除缓存再更新数据库" class="headerlink" title="先删除缓存再更新数据库"></a>先删除缓存再更新数据库</h5><p>假设某个用户的年龄是 20，请求 A 要更新用户年龄为 21，所以它会删除缓存中的内容。这时另一个请求 B 要读取这个用户的年龄，它查询缓存发现未命中后会从数据库中读取到年龄为 20 并且写入到缓存中，然后请求 A 继续更改数据库将用户的年龄更新为 21。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686364137296-b0646496-0959-4411-9854-de31af3152b2.png#averageHue=%23f9f5ef&clientId=u4bf596ea-1a46-4&from=paste&height=366&id=u3796715b&originHeight=762&originWidth=1119&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=225547&status=done&style=none&taskId=u0771f48e-4522-4f2f-82d0-1a798c3d960&title=&width=538.2000122070312"><br />最终该用户年龄在缓存中是 20（旧值），在数据库中是 21（新值），缓存和数据库的数据不一致。<br />先删除缓存再更新数据库在「读 + 写」并发的时候还是会出现缓存和数据库的数据不一致的问题。<br><a name="Axc3J"></a></p>
+<h5 id="先更新数据库再删除缓存"><a href="#先更新数据库再删除缓存" class="headerlink" title="先更新数据库再删除缓存"></a>先更新数据库再删除缓存</h5><p>继续用「读 + 写」请求的并发的场景来分析。<br />假如某个用户数据在缓存中不存在，请求 A 读取数据时从数据库中查询到年龄为 20，在未写入缓存中时另一个请求 B 更新数据，更新数据库中的年龄为 21 并且清空缓存。这时请求 A 把从数据库中读到的年龄为 20 的数据写入到缓存中。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686367005876-081c52b0-2da5-4c5e-8729-a65aeddfa996.png#averageHue=%23faf6ef&clientId=u8d7edf4a-f486-4&from=paste&height=365&id=u7560b0ab&originHeight=767&originWidth=1136&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=227220&status=done&style=none&taskId=u1a8f5f26-40b1-4c9f-967d-6fd1451193a&title=&width=541.2000122070312"><br />最终该用户年龄在缓存中是 20（旧值），在数据库中是 21（新值），缓存和数据库数据不一致。<br />从上面的理论上分析先更新数据库再删除缓存也是会出现数据不一致性的问题，但是在实际中这个问题出现的概率并不高。<br />因为缓存的写入通常要远远快于数据库的写入，所以在实际中很难出现请求 B 已经更新了数据库并且删除了缓存，请求 A 才更新完缓存的情况。<br />而一旦请求 A 早于请求 B 删除缓存之前更新了缓存，那么接下来的请求就会因为缓存不命中而从数据库中重新读取数据，所以不会出现这种不一致的情况。<br />所以「先更新数据库再删除缓存」的方案是可以保证数据一致性的。<br />为了确保万无一失还可以给缓存数据加上「过期时间」，这样就算在这期间存在缓存数据不一致，有过期时间来兜底也能达到最终一致。<br />「先更新数据库再删除缓存」其实是两个操作，前面的所有分析都是建立在这两个操作都能同时执行成功，如果在删除缓存（第二个操作）的时候失败了会导致缓存中的数据是旧值。<br />好在给缓存加上了过期时间，所以会出现过一段时间才更新生效的现象，如果没有过期时间的兜底，那后续的请求读到的就会一直是缓存中的旧数据，这样问题就大了。<br><a name="T5FsD"></a></p>
+<h5 id="为什么是删除缓存而不是更新缓存？"><a href="#为什么是删除缓存而不是更新缓存？" class="headerlink" title="为什么是删除缓存而不是更新缓存？"></a>为什么是删除缓存而不是更新缓存？</h5><p>删除一个数据相比更新一个数据更加轻量级，出问题的概率更小。在实际业务中缓存的数据可能不是直接来自数据库表，也许来自多张底层数据表的聚合。<br />比如商品详情信息，在底层可能会关联商品表、价格表、库存表等，如果更新一个价格字段，那么就要更新整个数据库，还要关联的去查询和汇总各个周边业务系统的数据，这个操作会非常耗时。从另外一个角度不是所有的缓存数据都是频繁访问的，更新后的缓存可能会长时间不被访问，所以从计算资源和整体性能的考虑更新的时候删除缓存，等到下次查询命中再填充缓存是一个更好的方案。<br />系统设计中有一个思想叫 Lazy Loading，适用于那些加载代价大的操作，删除缓存而不是更新缓存就是懒加载思想的一个应用。<br><a name="EexR7"></a></p>
+<h5 id="如何保证两个操作都能执行成功？"><a href="#如何保证两个操作都能执行成功？" class="headerlink" title="如何保证两个操作都能执行成功？"></a>如何保证两个操作都能执行成功？</h5><p>因为在删除缓存（第二个操作）的时候失败了导致缓存还是旧值，而数据库是最新值造成数据库和缓存数据不一致的问题，会对敏感业务造成影响。<br />举个例子应用要把数据 X 的值从 1 更新为 2，先成功更新了数据库，然后在 Redis 缓存中删除 X 的缓存，但是这个操作却失败了，这个时候数据库中 X 的新值为 2，Redis 中的 X 的缓存值为 1，出现了数据库和缓存数据不一致的问题。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686371760154-fca9ac46-269d-4e03-a92a-4f1693200969.png#averageHue=%23faf8f4&clientId=u8d7edf4a-f486-4&from=paste&height=430&id=u29be8737&originHeight=537&originWidth=1112&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=153843&status=done&style=none&taskId=u03e865e3-a62a-4579-b717-095a4f0bee4&title=&width=889.6"><br />后续有访问数据 X 的请求会先在 Redis 中查询，因为缓存并没有被删除，所以会命中缓存，但是读到的却是旧值 1。<br />不管是先操作数据库还是先操作缓存，只要第二个操作失败都会出现数据一致的问题。<br />解决有两种方法：</p>
+<ul>
+<li>重试机制；</li>
+<li>订阅 MySQL binlog 再操作缓存。<br><a name="KK0wC"></a></li>
+</ul>
+<h6 id="重试机制"><a href="#重试机制" class="headerlink" title="重试机制"></a>重试机制</h6><p>可以引入消息队列将第二个操作（删除缓存）要操作的数据加入到消息队列，由消费者来操作数据。</p>
+<ul>
+<li>如果应用删除缓存失败可以从消息队列中重新读取数据，然后再次删除缓存，这个就是重试机制。如果重试超过的一定次数还是没有成功就需要向业务层发送报错信息了；</li>
+<li>如果删除缓存成功就要把数据从消息队列中移除来避免重复操作，否则就继续重试。</li>
+</ul>
+<p>重试机制的过程：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686372255545-73802305-083c-428c-9ea2-e06122bc8951.png#averageHue=%23fbfaf9&clientId=u8d7edf4a-f486-4&from=paste&height=390&id=uc5b9d413&originHeight=488&originWidth=1140&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=124014&status=done&style=none&taskId=u44220c1c-69e3-455b-964b-f51f019de87&title=&width=912"><br><a name="o2CKN"></a></p>
+<h6 id="订阅-MySQL-binlog-再操作缓存"><a href="#订阅-MySQL-binlog-再操作缓存" class="headerlink" title="订阅 MySQL binlog 再操作缓存"></a>订阅 MySQL binlog 再操作缓存</h6><p>「先更新数据库再删缓存」的策略的第一步是更新数据库，更新数据库成功就会产生一条变更日志记录在 binlog 里。<br />可以通过订阅 binlog 日志拿到具体要操作的数据，然后再执行缓存删除，阿里巴巴开源的 Canal 中间件就是基于这个实现的。<br />Canal 模拟 MySQL 主从复制的交互协议，把自己伪装成一个 MySQL 的从节点向 MySQL 主节点发送 dump 请求，MySQL 收到请求后就会开始推送 binlog 给 Canal，Canal 解析 binlog 字节流之后转换为便于读取的结构化数据，供下游程序订阅使用。<br />Canal 的工作原理：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686372517380-fbbbafb4-d215-4b5e-ad78-2183c2320f78.png#averageHue=%23f8f7f5&clientId=u8d7edf4a-f486-4&from=paste&height=313&id=u5b05019f&originHeight=493&originWidth=1103&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=76269&status=done&style=none&taskId=u06170eb8-b94b-48cb-ae54-59bb00bc8c7&title=&width=699.2000122070312"><br />如果要想保证「先更新数据库再删缓存」策略第二个操作能执行成功，可以「使用消息队列来重试缓存的删除」或者「订阅 MySQL binlog 再操作缓存」，这两种方法有一个共同的特点都是采用异步操作缓存。<br><a name="OmZ2G"></a></p>
+<h4 id="其他方案"><a href="#其他方案" class="headerlink" title="其他方案"></a>其他方案</h4><p>「先更新数据库再删除缓存」的方案虽然保证了数据库与缓存的数据一致性，但是每次更新数据的时候缓存的数据都会被删除，这样会对缓存的命中率带来影响。<br />如果业务对缓存命中率有很高的要求可以采用「更新数据库 + 更新缓存」的方案，因为更新缓存并不会出现缓存未命中的情况。<br />这个方案前面也分析过，在两个更新请求并发执行的时候会出现数据不一致的问题，因为更新数据库和更新缓存这两个操作是独立的又没有对操作做任何并发控制，所以当两个线程并发更新时就会因为写入顺序的不同造成数据的不一致。<br />所以得增加一些手段来解决这个问题，这里提供两种做法：</p>
+<ul>
+<li>在更新缓存前先加个分布式锁保证同一时间只运行一个请求更新缓存就不会产生并发问题了，当然引入锁对于写入的性能就会带来影响；</li>
+<li>在更新缓存时给缓存加上较短的过期时间，这样即使出现缓存不一致的情况缓存的数据也会很快过期，对业务还是能接受的。</li>
+</ul>
+<p>针对「先删除缓存再更新数据库」方案在「读 + 写」并发请求而造成缓存不一致的解决办法是「延迟双删」。<br />延迟双删实现的伪代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">#删除缓存</span><br><span class="line">redis.delKey(X)</span><br><span class="line">#更新数据库</span><br><span class="line">db.update(X)</span><br><span class="line">#睡眠</span><br><span class="line">Thread.sleep(N)</span><br><span class="line">#再删除缓存</span><br><span class="line">redis.delKey(X)</span><br></pre></td></tr></table></figure>
+<p>加了个睡眠时间主要是为了确保在请求 A 睡眠的时候，请求 B 能够在这一段时间完成「从数据库读取数据再把缺失的缓存写入缓存」的操作，然后请求 A 睡眠完再删除缓存。<br />所以请求 A 的睡眠时间就需要大于请求 B 「从数据库读取数据 + 写入缓存」的时间。<br />但是具体睡眠多久很难评估出来，所以这个方案也只是尽可能保证一致性而已，极端情况下依然会出现缓存不一致的现象。<br />因此还是比较建议用「先更新数据库再删除缓存」的方案。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1/">场景设计</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E8%AE%BF%E9%97%AE%E9%A2%91%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%9F/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">场景设计：如何设计访问频率控制？</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%8A%A8%E6%80%81%E7%BC%93%E5%AD%98%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE%E7%9A%84%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">场景设计：设计一个可以动态缓存热点数据的缓存策略</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E8%AE%BF%E9%97%AE%E9%A2%91%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%9F/" title="场景设计：如何设计访问频率控制？"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-10</div><div class="title">场景设计：如何设计访问频率控制？</div></div></a></div><div><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%8A%A8%E6%80%81%E7%BC%93%E5%AD%98%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE%E7%9A%84%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/" title="场景设计：设计一个可以动态缓存热点数据的缓存策略"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-10</div><div class="title">场景设计：设计一个可以动态缓存热点数据的缓存策略</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%98%E6%98%AF%E5%85%88%E6%9B%B4%E6%96%B0%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">先更新数据库还是先更新缓存？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%8D%E6%9B%B4%E6%96%B0%E7%BC%93%E5%AD%98"><span class="toc-number">1.1.</span> <span class="toc-text">先更新数据库再更新缓存</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%88%E6%9B%B4%E6%96%B0%E7%BC%93%E5%AD%98%E5%86%8D%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">1.2.</span> <span class="toc-text">先更新缓存再更新数据库</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E8%BF%98%E6%98%AF%E5%85%88%E5%88%A0%E9%99%A4%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">先更新数据库还是先删除缓存？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%88%E5%88%A0%E9%99%A4%E7%BC%93%E5%AD%98%E5%86%8D%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93"><span class="toc-number">2.1.</span> <span class="toc-text">先删除缓存再更新数据库</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%85%88%E6%9B%B4%E6%96%B0%E6%95%B0%E6%8D%AE%E5%BA%93%E5%86%8D%E5%88%A0%E9%99%A4%E7%BC%93%E5%AD%98"><span class="toc-number">2.2.</span> <span class="toc-text">先更新数据库再删除缓存</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E5%88%A0%E9%99%A4%E7%BC%93%E5%AD%98%E8%80%8C%E4%B8%8D%E6%98%AF%E6%9B%B4%E6%96%B0%E7%BC%93%E5%AD%98%EF%BC%9F"><span class="toc-number">2.3.</span> <span class="toc-text">为什么是删除缓存而不是更新缓存？</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E4%B8%A4%E4%B8%AA%E6%93%8D%E4%BD%9C%E9%83%BD%E8%83%BD%E6%89%A7%E8%A1%8C%E6%88%90%E5%8A%9F%EF%BC%9F"><span class="toc-number">2.4.</span> <span class="toc-text">如何保证两个操作都能执行成功？</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6"><span class="toc-number">2.4.1.</span> <span class="toc-text">重试机制</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E8%AE%A2%E9%98%85-MySQL-binlog-%E5%86%8D%E6%93%8D%E4%BD%9C%E7%BC%93%E5%AD%98"><span class="toc-number">2.4.2.</span> <span class="toc-text">订阅 MySQL binlog 再操作缓存</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B6%E4%BB%96%E6%96%B9%E6%A1%88"><span class="toc-number">3.</span> <span class="toc-text">其他方案</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>进程管理：进程基础知识 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="编写的代码只是一个存储在硬盘的静态文件，通过编译后就会生成二进制可执行文件，当运行这个可执行文件后它会被装载到内存中，接着 CPU 会执行程序中的每一条指令，运行中的程序被称为「进程」（Process）。有一个会读取硬盘文件数据的程序被执行了，那么当运行到读取文件的指令时就会去从硬盘读取数据，但是硬盘的读写速度是非常慢的，在这个时候如果 CPU 傻傻的等硬盘返回数据的话 CPU 的利用率是非常低的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="进程管理：进程基础知识">
+<meta property="og:url" content="http://example.com/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E8%BF%9B%E7%A8%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="编写的代码只是一个存储在硬盘的静态文件，通过编译后就会生成二进制可执行文件，当运行这个可执行文件后它会被装载到内存中，接着 CPU 会执行程序中的每一条指令，运行中的程序被称为「进程」（Process）。有一个会读取硬盘文件数据的程序被执行了，那么当运行到读取文件的指令时就会去从硬盘读取数据，但是硬盘的读写速度是非常慢的，在这个时候如果 CPU 傻傻的等硬盘返回数据的话 CPU 的利用率是非常低的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-07T13:20:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.873Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="进程管理">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E8%BF%9B%E7%A8%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '进程管理：进程基础知识',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">进程管理：进程基础知识</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-07T13:20:00.000Z" title="发表于 2022-12-07 13:20:00">2022-12-07</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.873Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">计算机操作系统</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>编写的代码只是一个存储在硬盘的静态文件，通过编译后就会生成二进制可执行文件，当运行这个可执行文件后它会被装载到内存中，接着 CPU 会执行程序中的每一条指令，运行中的程序被称为「进程」（Process）。<br />有一个会读取硬盘文件数据的程序被执行了，那么当运行到读取文件的指令时就会去从硬盘读取数据，但是硬盘的读写速度是非常慢的，在这个时候如果 CPU 傻傻的等硬盘返回数据的话 CPU 的利用率是非常低的。<br />所以当进程要从硬盘读取数据时 CPU 不需要阻塞等待数据的返回，而是去执行另外的进程。当硬盘数据返回时 CPU 会收到个中断，于是 CPU 再继续运行这个进程。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686216193216-027ed512-505d-497f-bb00-f47989ab6823.png#averageHue=%23f6f1f0&clientId=u3b0a58ef-73e9-4&from=paste&height=202&id=u7571aa56&originHeight=423&originWidth=1104&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=216913&status=done&style=none&taskId=u2ae028a8-d126-42f2-9f01-d7717ce533c&title=&width=527.2000122070312"><br />这种多个程序交替执行的思想就有 CPU 管理多个进程的初步想法。<br />对于一个支持多进程的系统，CPU 会从一个进程快速切换至另一个进程，其间每个进程各运行几十或几百个毫秒。<br />虽然单核的 CPU 在某一个瞬间只能运行一个进程，但在 1 秒钟期间它可能会运行多个进程，这样就产生并行的错觉，实际上这是并发。<br />并发和并行区别：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686216350450-55a378a6-8deb-4cef-9814-140e1aa9f3a1.png#averageHue=%23faf5f0&clientId=u3b0a58ef-73e9-4&from=paste&height=292&id=u9bc34179&originHeight=814&originWidth=998&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=193285&status=done&style=none&taskId=u7c4d8b31-2c05-4274-a5e4-9d8efbbf3e5&title=&width=358.20001220703125"><br />CPU 可以从一个进程切换到另外一个进程，在切换前必须要记录当前进程中运行的状态信息以备下次切换回来的时候可以恢复执行。<br />进程有着「运行 - 暂停 - 运行」的活动规律。<br><a name="CbdvN"></a></p>
+<h4 id="进程的状态"><a href="#进程的状态" class="headerlink" title="进程的状态"></a>进程的状态</h4><p>一般说来一个进程并不是自始至终连续不停地运行的，它与并发执行中的其他进程的执行是相互制约的。<br />它有时处于运行状态，有时又由于某种原因而暂停运行处于等待状态，当使它暂停的原因消失后它又进入准备运行状态。<br />所以在一个进程的活动期间至少具备三种基本状态，即运行状态、就绪状态、阻塞状态。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686216595573-ac0b5491-7c9c-4211-979c-f22e74c74916.png#averageHue=%23f4f1ef&clientId=u3b0a58ef-73e9-4&from=paste&height=394&id=ufb3a7240&originHeight=492&originWidth=1113&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=184104&status=done&style=none&taskId=u0d1be2cf-5464-4875-abaa-01d8dc9f236&title=&width=890.4"><br />上图中各个状态的意义：</p>
+<ul>
+<li>运行状态（Running）：该时刻进程占用 CPU；</li>
+<li>就绪状态（Ready）：可运行，但由于其他进程处于运行状态而暂时停止运行；</li>
+<li>阻塞状态（Blocked）：该进程正在等待某一事件发生（如等待输入&#x2F;输出操作的完成）而暂时停止运行，这时即使给它CPU控制权也无法运行。</li>
+</ul>
+<p>进程还有另外两个基本状态：</p>
+<ul>
+<li>创建状态（new）：进程正在被创建时的状态；</li>
+<li>结束状态（Exit）：进程正在从系统中消失时的状态。</li>
+</ul>
+<p>一个完整的进程状态的变迁如下图：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686216811059-73d3f211-b4f4-445c-8331-0e1f93c5d87f.png#averageHue=%23f9f5ec&clientId=u3b0a58ef-73e9-4&from=paste&height=302&id=ub62ab511&originHeight=378&originWidth=1107&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=156527&status=done&style=none&taskId=u88826fcc-9af6-46a7-a951-fe25b863028&title=&width=885.6"><br />进程的状态变迁：</p>
+<ul>
+<li>NULL -&gt; 创建状态：一个新进程被创建时的第一个状态；</li>
+<li>创建状态 -&gt; 就绪状态：当进程被创建完成并初始化后，一切就绪准备运行时变为就绪状态，这个过程是很快的；</li>
+<li>就绪态 -&gt; 运行状态：处于就绪状态的进程被操作系统的进程调度器选中后就分配给 CPU 正式运行该进程；</li>
+<li>运行状态 -&gt; 结束状态：当进程已经运行完成或出错时会被操作系统作结束状态处理；</li>
+<li>运行状态 -&gt; 就绪状态：处于运行状态的进程在运行过程中由于分配给它的运行时间片用完，操作系统会把该进程变为就绪态，接着从就绪态中选中另外一个进程运行；</li>
+<li>运行状态 -&gt; 阻塞状态：当进程请求某个事件且必须等待时，例如请求 I&#x2F;O 事件；</li>
+<li>阻塞状态 -&gt; 就绪状态：当进程要等待的事件完成时从阻塞状态变到就绪状态。</li>
+</ul>
+<p>如果有大量处于阻塞状态的进程，进程可能会占用着物理内存空间，物理内存空间是有限的，被阻塞状态的进程占用着物理内存就是一种浪费物理内存的行为。<br />所以在虚拟内存管理的操作系统中通常会把阻塞状态的进程的物理内存空间换出到硬盘，等需要再次运行的时候再从硬盘换入到物理内存。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686217220158-d46a0c29-8803-4dd3-aab6-6745757ba21d.png#averageHue=%23f7f3ec&clientId=u3b0a58ef-73e9-4&from=paste&height=318&id=u9702c675&originHeight=692&originWidth=1122&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=128713&status=done&style=none&taskId=uf64b4888-653c-431b-931c-72973f5f8dc&title=&width=516.2000122070312"><br />那么就需要一个新的状态来描述进程没有占用实际的物理内存空间的情况，这个状态就是挂起状态。这跟阻塞状态不一样，阻塞状态是等待某个事件的返回。<br />挂起状态可以分为两种：</p>
+<ul>
+<li>阻塞挂起状态：进程在外存（硬盘）并等待某个事件的出现；</li>
+<li>就绪挂起状态：进程在外存（硬盘），但只要进入内存就立刻运行。</li>
+</ul>
+<p>这两种挂起状态加上前面的五种状态就变成了七种状态变迁，见如下图：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686217379626-8aa47cf5-43f7-4b27-916d-a7bb0b7ea92a.png#averageHue=%23faf8f5&clientId=u3b0a58ef-73e9-4&from=paste&height=389&id=uef8559b8&originHeight=690&originWidth=1137&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=201491&status=done&style=none&taskId=ub5692b5b-7606-42ec-8047-51065a35979&title=&width=641.2000122070312"><br />导致进程挂起的原因不只是因为进程所使用的内存空间不在物理内存，还包括如下情况：</p>
+<ul>
+<li>通过 sleep 让进程间歇性挂起，其工作原理是设置一个定时器，到期后唤醒进程。</li>
+<li>用户希望挂起一个程序的执行，比如在 Linux 中用 Ctrl+Z 挂起进程。<br><a name="V0uuR"></a></li>
+</ul>
+<h4 id="进程的控制结构"><a href="#进程的控制结构" class="headerlink" title="进程的控制结构"></a>进程的控制结构</h4><p>在操作系统中是用进程控制块（process control block，PCB）数据结构来描述进程的。<br />PCB 是进程存在的唯一标识，这意味着一个进程的存在必然会有一个 PCB，如果进程消失了 PCB 也会随之消失。<br />PCB 包含信息：</p>
+<ul>
+<li>进程描述信息：<ul>
+<li>进程标识符：标识各个进程，每个进程都有一个并且唯一的标识符；</li>
+<li>用户标识符：进程归属的用户，用户标识符主要为共享和保护服务。</li>
+</ul>
+</li>
+<li>进程控制和管理信息：<ul>
+<li>进程当前状态，如 new、ready、running、waiting 或 blocked 等；</li>
+<li>进程优先级：进程抢占 CPU 时的优先级。</li>
+</ul>
+</li>
+<li>资源分配清单：<ul>
+<li>有关内存地址空间或虚拟地址空间的信息，所打开文件的列表和所使用的 I&#x2F;O 设备信息。</li>
+</ul>
+</li>
+<li>CPU 相关信息：<ul>
+<li>CPU 中各个寄存器的值，当进程被切换时 CPU 的状态信息都会被保存在相应的 PCB 中以便进程重新执行时能从断点处继续执行。</li>
+</ul>
+</li>
+</ul>
+<p>PCB 通常是通过链表的方式进行组织，把具有相同状态的进程链在一起组成各种队列。比如：</p>
+<ul>
+<li>将所有处于就绪状态的进程链在一起称为就绪队列；</li>
+<li>把所有因等待某事件而处于等待状态的进程链在一起就组成各种阻塞队列；</li>
+<li>对于运行队列在单核 CPU 系统中只有一个运行指针，因为单核 CPU 在某个时间只能运行一个程序。</li>
+</ul>
+<p>就绪队列和阻塞队列链表的组织形式如下图：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686218081227-52ead3d9-c6fe-4ff8-90e6-a92c279f0560.png#averageHue=%23f9f8f8&clientId=u3b0a58ef-73e9-4&from=paste&height=310&id=ud54f9f95&originHeight=630&originWidth=1150&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=84145&status=done&style=none&taskId=u7664f3a0-62cd-4e2d-b9e2-f539bbb07d6&title=&width=565.2000122070312"><br />除了链接的组织方式还有索引方式，它的工作原理：将同一状态的进程组织在一个索引表中，索引表项指向相应的 PCB，不同状态对应不同的索引表。<br />一般会选择链表，因为可能面临进程创建，销毁等调度导致进程状态发生变化，所以链表能够更加灵活的插入和删除。<br><a name="kIYAH"></a></p>
+<h4 id="进程的控制"><a href="#进程的控制" class="headerlink" title="进程的控制"></a>进程的控制</h4><p>进程的创建、终止、阻塞、唤醒的过程就是进程的控制。<br><a name="MbqXa"></a></p>
+<h5 id="创建进程"><a href="#创建进程" class="headerlink" title="创建进程"></a>创建进程</h5><p>操作系统允许一个进程创建另一个进程而且允许子进程继承父进程所拥有的资源。<br />创建进程的过程如下：</p>
+<ul>
+<li>申请一个空白的 PCB 并向 PCB 中填写一些控制和管理进程的信息，比如进程的唯一标识等；</li>
+<li>为该进程分配运行时所必需的资源，比如内存资源；</li>
+<li>将 PCB 插入到就绪队列，等待被调度运行。<br><a name="gBR8o"></a></li>
+</ul>
+<h5 id="终止进程"><a href="#终止进程" class="headerlink" title="终止进程"></a>终止进程</h5><p>进程可以有 3 种终止方式：正常结束、异常结束以及外界干预（信号 kill 掉）。<br />当子进程被终止时其在父进程处继承的资源应当还给父进程。而当父进程被终止时该父进程的子进程就变为孤儿进程，会被 1 号进程收养并由 1 号进程对它们完成状态收集工作。<br />终止进程的过程如下：</p>
+<ul>
+<li>查找需要终止的进程的 PCB；</li>
+<li>如果处于执行状态就立即终止该进程的执行，然后将 CPU 资源分配给其他进程；</li>
+<li>如果其还有子进程就将该进程的子进程交给 1 号进程接管；</li>
+<li>将该进程所拥有的全部资源都归还给操作系统；</li>
+<li>将其从 PCB 所在队列中删除。<br><a name="IAyXP"></a></li>
+</ul>
+<h5 id="阻塞进程"><a href="#阻塞进程" class="headerlink" title="阻塞进程"></a>阻塞进程</h5><p>当进程需要等待某一事件完成时可以调用阻塞语句把自己阻塞等待。一旦被阻塞等待只能由另一个进程唤醒。<br />阻塞进程的过程如下：</p>
+<ul>
+<li>找到将要被阻塞进程标识号对应的 PCB；</li>
+<li>如果该进程为运行状态则保护其现场，将其状态转为阻塞状态并停止运行；</li>
+<li>将该 PCB 插入到阻塞队列中去。<br><a name="i53XR"></a></li>
+</ul>
+<h5 id="唤醒进程"><a href="#唤醒进程" class="headerlink" title="唤醒进程"></a>唤醒进程</h5><p>进程由「运行」转变为「阻塞」状态是由于进程必须等待某一事件的完成，所以处于阻塞状态的进程是绝对不可能叫醒自己的。<br />如果某进程正在等待 I&#x2F;O 事件，需由别的进程发消息给它，则只有当该进程所期待的事件出现时才由发现者进程用唤醒语句叫醒它。<br />唤醒进程的过程如下：</p>
+<ul>
+<li>在该事件的阻塞队列中找到相应进程的 PCB；</li>
+<li>将其从阻塞队列中移出并置其状态为就绪状态；</li>
+<li>把该 PCB 插入到就绪队列中，等待调度程序调度。</li>
+</ul>
+<p>进程的阻塞和唤醒是一对功能相反的语句，如果某个进程调用了阻塞语句则必有一个与之对应的唤醒语句。<br><a name="YsH5h"></a></p>
+<h4 id="进程的上下文切换"><a href="#进程的上下文切换" class="headerlink" title="进程的上下文切换"></a>进程的上下文切换</h4><p>各个进程之间是共享 CPU 资源的，在不同的时候进程之间需要切换来让不同的进程可以在 CPU 执行，这样一个进程切换到另一个进程运行称为进程的上下文切换。<br><a name="GMHAi"></a></p>
+<h5 id="CPU-上下文切换"><a href="#CPU-上下文切换" class="headerlink" title="CPU 上下文切换"></a>CPU 上下文切换</h5><p>大多数操作系统都是多任务，通常支持大于 CPU 数量的任务同时运行。实际上这些任务并不是同时运行的，只是因为系统在很短的时间内让各个任务分别在 CPU 运行造成了同时运行的错觉。<br />任务是交给 CPU 运行的，在每个任务运行前 CPU 需要知道任务从哪里加载，又从哪里开始运行。<br />所以操作系统需要事先帮 CPU 设置好 CPU 寄存器和程序计数器。<br />CPU 寄存器是 CPU 内部一个容量小但是速度极快的内存（缓存）。<br />程序计数器是用来存储 CPU 正在执行的指令位置、即将执行的下一条指令位置。<br />CPU 寄存器和程序计数器是 CPU 在运行任何任务前所必须依赖的环境，这些环境就叫做 CPU 上下文。<br />CPU 上下文切换就是先把前一个任务的 CPU 上下文（CPU 寄存器和程序计数器）保存起来，然后加载新任务的上下文到这些寄存器和程序计数器，最后再跳转到程序计数器所指的新位置运行新任务。<br />系统内核会存储保存下来的上下文信息，当此任务再次被分配给 CPU 运行时 CPU 会重新加载这些上下文，这样就能保证任务原来的状态不受影响，让任务看起来还是连续运行。<br />上面说到所谓的「任务」主要包含进程、线程和中断。所以可以根据任务的不同把 CPU 上下文切换分成：进程上下文切换、线程上下文切换和中断上下文切换。<br><a name="Yr2Yi"></a></p>
+<h5 id="进程上下文切换"><a href="#进程上下文切换" class="headerlink" title="进程上下文切换"></a>进程上下文切换</h5><p>进程是由内核管理和调度的，所以进程的切换只能发生在内核态。<br />所以进程的上下文切换不仅包含了虚拟内存、栈、全局变量等用户空间的资源，还包括了内核堆栈、寄存器等内核空间的资源。<br />通常会把交换的信息保存在进程的 PCB 里，当要运行另外一个进程时需要从这个进程的 PCB 里取出上下文，然后恢复到 CPU 中以使得这个进程可以继续执行，如下图所示：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1686240114688-306e594f-6ad9-459f-8ea9-be63af965cd8.png#averageHue=%23f4efe8&clientId=uafa8d369-79c5-4&from=paste&height=209&id=u556fd57b&originHeight=261&originWidth=1087&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=98426&status=done&style=none&taskId=u28af2b25-4a24-4636-a399-272d43ed248&title=&width=869.6"><br />进程的上下文开销是很关键的，希望它的开销越小越好，这样可以使得进程可以把更多时间花费在执行程序上而不是耗费在上下文切换。<br />发生进程上下文切换的场景：</p>
+<ul>
+<li>为了保证所有进程可以得到公平调度，CPU 时间被划分为一段段的时间片，这些时间片再被轮流分配给各个进程。这样当某个进程的时间片耗尽了，进程就从运行状态变为就绪状态，系统从就绪队列选择另外一个进程运行；</li>
+<li>进程在系统资源不足（比如内存不足）时要等到资源满足后才可以运行，这个时候进程也会被挂起并由系统调度其他进程运行；</li>
+<li>当进程通过睡眠函数 sleep 这样的方法将自己主动挂起时也会重新调度；</li>
+<li>当有优先级更高的进程运行时，为了保证高优先级进程的运行，当前进程会被挂起，由高优先级进程运行；</li>
+<li>发生硬件中断时 CPU 上的进程会被中断挂起，转而执行内核中的中断服务程序；</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86/">进程管理</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/07/%E7%BD%91%E7%BB%9C%E7%B3%BB%E7%BB%9F%EF%BC%9A%E9%AB%98%E6%80%A7%E8%83%BD%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%BC%8F/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">网络系统：高性能网络模式</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">进程管理：线程基础知识</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" title="进程管理：线程基础知识"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-07</div><div class="title">进程管理：线程基础知识</div></div></a></div><div><a href="/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E8%BF%9B%E7%A8%8B%E8%B0%83%E5%BA%A6/" title="进程管理：进程调度"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-07</div><div class="title">进程管理：进程调度</div></div></a></div><div><a href="/2022/12/07/%E8%BF%9B%E7%A8%8B%E7%AE%A1%E7%90%86%EF%BC%9A%E8%BF%9B%E7%A8%8B%E9%97%B4%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/" title="进程管理：进程间通信方式"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-07</div><div class="title">进程管理：进程间通信方式</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E7%8A%B6%E6%80%81"><span class="toc-number">1.</span> <span class="toc-text">进程的状态</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%8E%A7%E5%88%B6%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">进程的控制结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E6%8E%A7%E5%88%B6"><span class="toc-number">3.</span> <span class="toc-text">进程的控制</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.1.</span> <span class="toc-text">创建进程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E7%BB%88%E6%AD%A2%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.2.</span> <span class="toc-text">终止进程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%98%BB%E5%A1%9E%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.3.</span> <span class="toc-text">阻塞进程</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E5%94%A4%E9%86%92%E8%BF%9B%E7%A8%8B"><span class="toc-number">3.4.</span> <span class="toc-text">唤醒进程</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E7%9A%84%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2"><span class="toc-number">4.</span> <span class="toc-text">进程的上下文切换</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#CPU-%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2"><span class="toc-number">4.1.</span> <span class="toc-text">CPU 上下文切换</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%BF%9B%E7%A8%8B%E4%B8%8A%E4%B8%8B%E6%96%87%E5%88%87%E6%8D%A2"><span class="toc-number">4.2.</span> <span class="toc-text">进程上下文切换</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

@@ -1,0 +1,182 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>并发基础：死锁 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="死锁是一种状态，当多个线程相互持有对方所需要的资源，却又都不主动释放自己手中所持有的资源，导致大家都获取不到自己想要的资源，所有相关的线程都无法继续往下执行，在未改变这种状态之前都不能向前推进，就把这种状态称为死锁状态，认为它们发生了死锁。 4 个必要条件 互斥条件：每个资源每次只能被一个线程使用； 请求与保持条件：当一个线程因请求资源而阻塞时，则需对已获得的资源保持不放； 不剥夺条件：线程已获得">
+<meta property="og:type" content="article">
+<meta property="og:title" content="并发基础：死锁">
+<meta property="og:url" content="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E6%AD%BB%E9%94%81/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="死锁是一种状态，当多个线程相互持有对方所需要的资源，却又都不主动释放自己手中所持有的资源，导致大家都获取不到自己想要的资源，所有相关的线程都无法继续往下执行，在未改变这种状态之前都不能向前推进，就把这种状态称为死锁状态，认为它们发生了死锁。 4 个必要条件 互斥条件：每个资源每次只能被一个线程使用； 请求与保持条件：当一个线程因请求资源而阻塞时，则需对已获得的资源保持不放； 不剥夺条件：线程已获得">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-04T11:00:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.871Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="并发基础">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E6%AD%BB%E9%94%81/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '并发基础：死锁',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">并发基础：死锁</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-04T11:00:00.000Z" title="发表于 2022-12-04 11:00:00">2022-12-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.871Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/">并发编程</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p>死锁是一种状态，当多个线程相互持有对方所需要的资源，却又都不主动释放自己手中所持有的资源，导致大家都获取不到自己想要的资源，所有相关的线程都无法继续往下执行，在未改变这种状态之前都不能向前推进，就把这种状态称为死锁状态，认为它们发生了死锁。<br><a name="dxioL"></a></p>
+<h4 id="4-个必要条件"><a href="#4-个必要条件" class="headerlink" title="4 个必要条件"></a>4 个必要条件</h4><ul>
+<li>互斥条件：每个资源每次只能被一个线程使用；</li>
+<li>请求与保持条件：当一个线程因请求资源而阻塞时，则需对已获得的资源保持不放；</li>
+<li>不剥夺条件：线程已获得的资源，在未使用完之前，不会被强行剥夺；</li>
+<li>循环等待条件：只有若干线程之间形成一种头尾相接的循环等待资源关系时，才有可能形成死锁。<br><a name="DsQOD"></a></li>
+</ul>
+<h4 id="用命令行和代码定位死锁"><a href="#用命令行和代码定位死锁" class="headerlink" title="用命令行和代码定位死锁"></a>用命令行和代码定位死锁</h4><p>jstack 命令：它能看到 Java 线程的一些相关信息。如果是比较明显的死锁关系，那么这个工具就可以直接检测出来；如果死锁不明显，那么它无法直接检测出来，不过也可以借此来分析线程状态，进而就可以发现锁的相互依赖关系，所以这也是很有利于找到死锁的方式。<br />ThreadMXBean 工具类：通过 ThreadMXBean 的 findDeadlockedThreads 方法，可以获取到一个 deadlockedThreads 的数组，然后进行判断，当这个数组不为空且长度大于 0 的时候，逐个打印出对应的线程信息。如果在业务代码中加入这样的检测，那就可以在发生死锁的时候及时地定位，同时进行报警等其他处理，也就增强了程序的健壮性。<br><a name="rIcHd"></a></p>
+<h4 id="解决死锁问题策略"><a href="#解决死锁问题策略" class="headerlink" title="解决死锁问题策略"></a>解决死锁问题策略</h4><p>线上发生死锁最好的办法是保存 JVM 信息、日志等数据，然后立刻重启服务，来尝试修复死锁，暂时保证线上服务的可用，然后利用刚才保存过的信息，排查死锁、修改代码，最终重新发布。<br><a name="nt3PX"></a></p>
+<h5 id="避免策略"><a href="#避免策略" class="headerlink" title="避免策略"></a>避免策略</h5><p>优化代码逻辑，从根本上消除发生死锁的可能性。发生死锁的一个主要原因是顺序相反的去获取不同的锁。因此可以通过调整锁的获取顺序来避免死锁。<br><a name="RMBav"></a></p>
+<h5 id="检测与恢复策略"><a href="#检测与恢复策略" class="headerlink" title="检测与恢复策略"></a>检测与恢复策略</h5><p>先允许系统发生死锁，然后再解除。例如系统可以在每次调用锁的时候，都记录下来调用信息，形成一个 “锁的调用链路图”，然后隔一段时间就用死锁检测算法来检测一下，搜索这个图中是否存在环路，一旦发生死锁，就可以用死锁恢复机制，比如剥夺某一个资源，来解开死锁，进行恢复。<br><a name="Zbqb9"></a></p>
+<h5 id="鸵鸟策略"><a href="#鸵鸟策略" class="headerlink" title="鸵鸟策略"></a>鸵鸟策略</h5><p>如果系统发生死锁的概率不高，并且一旦发生其后果不是特别严重的话，就可以选择先忽略它。直到死锁发生的时候，再人工修复，比如重启服务，这并不是不可以的。如果系统用的人比较少，比如是内部的系统，那么在并发量极低的情况下，它可能几年都不会发生死锁。考虑到投入产出比，自然也没有必要去对死锁问题进行特殊的处理，这是需要根据业务场景进行合理选择的。<br><a name="RV48d"></a></p>
+<h4 id="哲学家就餐问题"><a href="#哲学家就餐问题" class="headerlink" title="哲学家就餐问题"></a>哲学家就餐问题</h4><p><a name="bIPgB"></a></p>
+<h5 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h5><p>有 5 个哲学家，他们面前都有一双筷子，即左手有一根筷子，右手有一根筷子。哲学家左手要拿到一根筷子，右手也要拿到一根筷子，在这种情况下哲学家才能吃饭。可以把哲学家一天的行为抽象为思考，然后吃饭，并且他们吃饭的时候要用一双筷子，而不能只用一根筷子。<br />如果每个哲学家都同时拿起左手的筷子，那么就形成了环形依赖，在这种特殊的情况下，每个人都拿着左手的筷子，都缺少右手的筷子，那么就没有人可以开始吃饭了，自然也就没有人会放下手中的筷子。这就陷入了死锁，形成了一个相互等待的情况，这就是经典的哲学家就餐问题。<br><a name="NoBDw"></a></p>
+<h5 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h5><p>要想解决死锁问题，只要破坏死锁四个必要条件的任何一个都可以。</p>
+<ul>
+<li>服务员检查：引入服务员检查机制。比如引入一个服务员，当每次哲学家要吃饭时，他需要先询问服务员：我现在能否去拿筷子吃饭？此时，服务员先判断他拿筷子有没有发生死锁的可能，假如有的话，服务员会说：现在不允许你吃饭。这是一种解决方案。</li>
+<li>领导调节：根据死锁检测和恢复策略，可以引入一个领导，这个领导进行定期巡视。如果他发现已经发生死锁了，就会剥夺某一个哲学家的筷子，让他放下。这样一来，由于这个人的牺牲，其他的哲学家就都可以吃饭了。这也是一种解决方案。</li>
+<li>改变一个哲学家拿筷子的顺序：利用死锁避免策略，那就是从逻辑上去避免死锁的发生，比如改变其中一个哲学家拿筷子的顺序。可以让 4 个哲学家都先拿左边的筷子再拿右边的筷子，但是有一名哲学家与他们相反，他是先拿右边的再拿左边的，这样一来就不会出现循环等待同一边筷子的情况，也就不会发生死锁了。</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80/">并发基础</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9Avolatile%20%E5%85%B3%E9%94%AE%E5%AD%97/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">并发基础：volatile 关键字</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9AThreadLocal/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">并发基础：ThreadLocal</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9AThreadLocal/" title="并发基础：ThreadLocal"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：ThreadLocal</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9Asynchronized%20%E5%85%B3%E9%94%AE%E5%AD%97/" title="并发基础：synchronized 关键字"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：synchronized 关键字</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9Avolatile%20%E5%85%B3%E9%94%AE%E5%AD%97/" title="并发基础：volatile 关键字"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：volatile 关键字</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E5%88%9B%E5%BB%BA%E5%81%9C%E6%AD%A2%E7%BA%BF%E7%A8%8B/" title="并发基础：创建停止线程"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：创建停止线程</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%BC%8F/" title="并发基础：生产者消费者模式"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：生产者消费者模式</div></div></a></div><div><a href="/2022/12/04/%E5%B9%B6%E5%8F%91%E5%9F%BA%E7%A1%80%EF%BC%9A%E7%BA%BF%E7%A8%8B%E5%85%AD%E7%A7%8D%E7%8A%B6%E6%80%81%E5%8F%8A%E8%BD%AC%E6%8D%A2/" title="并发基础：线程六种状态及转换"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-04</div><div class="title">并发基础：线程六种状态及转换</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E4%B8%AA%E5%BF%85%E8%A6%81%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.</span> <span class="toc-text">4 个必要条件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%94%A8%E5%91%BD%E4%BB%A4%E8%A1%8C%E5%92%8C%E4%BB%A3%E7%A0%81%E5%AE%9A%E4%BD%8D%E6%AD%BB%E9%94%81"><span class="toc-number">2.</span> <span class="toc-text">用命令行和代码定位死锁</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81%E9%97%AE%E9%A2%98%E7%AD%96%E7%95%A5"><span class="toc-number">3.</span> <span class="toc-text">解决死锁问题策略</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E7%AD%96%E7%95%A5"><span class="toc-number">3.1.</span> <span class="toc-text">避免策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%A3%80%E6%B5%8B%E4%B8%8E%E6%81%A2%E5%A4%8D%E7%AD%96%E7%95%A5"><span class="toc-number">3.2.</span> <span class="toc-text">检测与恢复策略</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%B8%B5%E9%B8%9F%E7%AD%96%E7%95%A5"><span class="toc-number">3.3.</span> <span class="toc-text">鸵鸟策略</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%93%B2%E5%AD%A6%E5%AE%B6%E5%B0%B1%E9%A4%90%E9%97%AE%E9%A2%98"><span class="toc-number">4.</span> <span class="toc-text">哲学家就餐问题</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%8F%8F%E8%BF%B0"><span class="toc-number">4.1.</span> <span class="toc-text">问题描述</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">4.2.</span> <span class="toc-text">解决方案</span></a></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

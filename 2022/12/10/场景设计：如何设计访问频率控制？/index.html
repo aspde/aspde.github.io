@@ -1,0 +1,194 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>场景设计：如何设计访问频率控制？ | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="场景 软件获取手机的登录验证码，一分钟只能发送一次； 贴吧发帖 10 秒钟只能发送一次； 在 b 站上看直播 5 秒钟之内只能发送一条弹幕。  存储方案系统设计 MySQL这种方案是不可行的：  性能问题：如果是类似于弹幕的高频访问，性能可能扛不住； 冗余数据问题：过了某个时间段数据就没有作用了，无需持久化存储。  Redis这种方案有两个好处：  访问速度快：因为 Redis 本身是基于内存的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="场景设计：如何设计访问频率控制？">
+<meta property="og:url" content="http://example.com/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E8%AE%BF%E9%97%AE%E9%A2%91%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%9F/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="场景 软件获取手机的登录验证码，一分钟只能发送一次； 贴吧发帖 10 秒钟只能发送一次； 在 b 站上看直播 5 秒钟之内只能发送一条弹幕。  存储方案系统设计 MySQL这种方案是不可行的：  性能问题：如果是类似于弹幕的高频访问，性能可能扛不住； 冗余数据问题：过了某个时间段数据就没有作用了，无需持久化存储。  Redis这种方案有两个好处：  访问速度快：因为 Redis 本身是基于内存的">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-10T10:20:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.870Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="场景设计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E8%AE%BF%E9%97%AE%E9%A2%91%E7%8E%87%E6%8E%A7%E5%88%B6%EF%BC%9F/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '场景设计：如何设计访问频率控制？',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">场景设计：如何设计访问频率控制？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-10T10:20:00.000Z" title="发表于 2022-12-10 10:20:00">2022-12-10</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.870Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/">系统设计</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p><a name="hZ2LI"></a></p>
+<h4 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h4><ul>
+<li>软件获取手机的登录验证码，一分钟只能发送一次；</li>
+<li>贴吧发帖 10 秒钟只能发送一次；</li>
+<li>在 b 站上看直播 5 秒钟之内只能发送一条弹幕。<br><a name="bKJJI"></a></li>
+</ul>
+<h4 id="存储方案系统设计"><a href="#存储方案系统设计" class="headerlink" title="存储方案系统设计"></a>存储方案系统设计</h4><p><a name="NnTs1"></a></p>
+<h5 id="MySQL"><a href="#MySQL" class="headerlink" title="MySQL"></a>MySQL</h5><p>这种方案是不可行的：</p>
+<ul>
+<li>性能问题：如果是类似于弹幕的高频访问，性能可能扛不住；</li>
+<li>冗余数据问题：过了某个时间段数据就没有作用了，无需持久化存储。<br><a name="KYF35"></a></li>
+</ul>
+<h5 id="Redis"><a href="#Redis" class="headerlink" title="Redis"></a>Redis</h5><p>这种方案有两个好处：</p>
+<ul>
+<li>访问速度快：因为 Redis 本身是基于内存的，访问速度特别快；</li>
+<li>自带过期时间，可以方便的对过期数据进行清理。<br><a name="alAEt"></a></li>
+</ul>
+<h6 id="计数型"><a href="#计数型" class="headerlink" title="计数型"></a>计数型</h6><p>直接简单粗暴的进行 count，比如验证码只允许一分钟访问一次，如果一分钟内超过一次，则返回拒绝错误。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1677885620253-96980385-bdb6-41cb-b27a-1e8bc6da425a.png#averageHue=%23f8f7f6&clientId=ud28d9d18-f435-4&from=paste&height=334&id=u39bfb6d5&originHeight=405&originWidth=386&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=31055&status=done&style=none&taskId=u8ee186d0-7118-490d-8461-37c17788d8a&title=&width=318.8000183105469"><br />流程：首先请求到来之后根据用户的 ip 或用户信息判断用户获取验证码的次数。判断有没有，如果有的话直接 +1。然后再根据业务配置场景来判断是否超过了阈值。如果超过了阈值直接拒绝访问，如果没有超过则继续请求下面的业务。<br />设计：利用 Redis 中的 String 或 Hash 等等。</p>
+<ul>
+<li>key：用户的 id &#x2F; ip；</li>
+<li>value：访问的次数；</li>
+<li>过期时间：业务的过期时间。</li>
+</ul>
+<p>第一次访问之后 value 设置为 1，后续每访问一次 +1。请求到达之后先判断是否达到了访问限制，如果没有直接用 INCRBY 加 1，如果超过了阈值直接拒绝返回。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1677887037082-55ddbc77-c83e-44d4-bb0d-7bac8138ae60.png#averageHue=%23f9f9f9&clientId=ud28d9d18-f435-4&from=paste&height=152&id=ub9db6fcd&originHeight=184&originWidth=779&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=24072&status=done&style=none&taskId=u7fa0eaad-be7f-4856-bd29-ae51bedd402&title=&width=644.2000122070312"><br />问题：无法很好的做到频率控制而且容易在某个短时间突增流量。<br />例如一分钟只能发送 5 个帖子，用户在第一个一分钟的 1 秒发送一次，59 秒连续发送 4 次，然后在第二个一分钟的 1 秒连续发送 5 次，这样就会在短短的 3 秒钟时间内发送了 9 次帖子，造成短期的流量突增。<br><a name="kmmy2"></a></p>
+<h6 id="Sorted-Set"><a href="#Sorted-Set" class="headerlink" title="Sorted Set"></a>Sorted Set</h6><p><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1677887666135-f2fca0e5-84bd-46de-a17f-bbc6bbe7fd06.png#averageHue=%23f5f3f2&clientId=ud28d9d18-f435-4&from=paste&height=156&id=uee547cb1&originHeight=194&originWidth=805&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=26746&status=done&style=none&taskId=u8ffb9144-caf5-4e1e-ae5c-088b15c5206&title=&width=647"><br />滑动窗口解决流量突增的问题：滑动窗口用于判断动态的一分钟或动态的一个时间段范围内是否超过了限制。类似于 TCP 协议中的滑动窗口，窗口一直向右递增，获取时只需要判断最近一分钟之内访问次数是否达到限制即可，这样会很好的防止流量突增的问题。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1677887845885-fd67bc70-e9c8-42c7-b13d-4f87ea4abb3d.png#averageHue=%23f6f6f6&clientId=ud28d9d18-f435-4&from=paste&height=341&id=u228039ae&originHeight=414&originWidth=254&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=21216&status=done&style=none&taskId=uce12b97a-ce55-48ba-b6ef-f8f36cf332d&title=&width=209.1999969482422"><br />流程：首先用用户的 ip 或 id 获取当前的时间戳，然后再根据当前的时间戳倒推最近一段时间内的访问的次数。如果大于阈值直接拒绝访问，否则继续其他业务。<br />设计：Sorted Set 天然带有有序性。</p>
+<ul>
+<li>key：用户的 id &#x2F; ip；</li>
+<li>score：当前时间戳；</li>
+<li>member：当前时间戳。<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZADD &#123;user_id&#125; &#123;current_time&#125; &#123;current_time&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ZCOUNT &#123;user_id&#125; &#123;current_time-&#123;1分钟毫秒数&#125;&#125; &#123;current_time&#125;</span><br></pre></td></tr></table></figure>
+问题：由于 Sorted Set 只能对整个 key 设置过期时间，如果不及时清理数据，日积月累 Redis 会产生大量的大 key。因此需要用定时任务定期清理一分钟以前的数据，将数据不断地清洗。清洗的过程可以做成异步式的，不需要影响业务。</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1/">场景设计</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/10/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1%E5%9F%BA%E7%A1%80%EF%BC%9A%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9%E3%80%81%E5%87%BB%E7%A9%BF%E3%80%81%E7%A9%BF%E9%80%8F/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">系统设计基础：缓存雪崩、击穿、穿透</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">场景设计：如何保证数据库和缓存一致性？</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%95%B0%E6%8D%AE%E5%BA%93%E5%92%8C%E7%BC%93%E5%AD%98%E4%B8%80%E8%87%B4%E6%80%A7%EF%BC%9F/" title="场景设计：如何保证数据库和缓存一致性？"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-10</div><div class="title">场景设计：如何保证数据库和缓存一致性？</div></div></a></div><div><a href="/2022/12/10/%E5%9C%BA%E6%99%AF%E8%AE%BE%E8%AE%A1%EF%BC%9A%E8%AE%BE%E8%AE%A1%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%8A%A8%E6%80%81%E7%BC%93%E5%AD%98%E7%83%AD%E7%82%B9%E6%95%B0%E6%8D%AE%E7%9A%84%E7%BC%93%E5%AD%98%E7%AD%96%E7%95%A5/" title="场景设计：设计一个可以动态缓存热点数据的缓存策略"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-10</div><div class="title">场景设计：设计一个可以动态缓存热点数据的缓存策略</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">场景</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AD%98%E5%82%A8%E6%96%B9%E6%A1%88%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1"><span class="toc-number">2.</span> <span class="toc-text">存储方案系统设计</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#MySQL"><span class="toc-number">2.1.</span> <span class="toc-text">MySQL</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#Redis"><span class="toc-number">2.2.</span> <span class="toc-text">Redis</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E8%AE%A1%E6%95%B0%E5%9E%8B"><span class="toc-number">2.2.1.</span> <span class="toc-text">计数型</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#Sorted-Set"><span class="toc-number">2.2.2.</span> <span class="toc-text">Sorted Set</span></a></li></ol></li></ol></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>垃圾回收：经典垃圾收集器 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="图中展示了七种作用于不同分代的收集器，如果两个收集器之间存在连线，就说明它们可以搭配使用，图中收集器所处的区域，则表示它是属于新生代收集器抑或是老年代收集器。 Serial 收集器Serial 收集器是一个单线程工作的收集器，“单线程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强调在它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束。从 Seria">
+<meta property="og:type" content="article">
+<meta property="og:title" content="垃圾回收：经典垃圾收集器">
+<meta property="og:url" content="http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%EF%BC%9A%E7%BB%8F%E5%85%B8%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="图中展示了七种作用于不同分代的收集器，如果两个收集器之间存在连线，就说明它们可以搭配使用，图中收集器所处的区域，则表示它是属于新生代收集器抑或是老年代收集器。 Serial 收集器Serial 收集器是一个单线程工作的收集器，“单线程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强调在它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束。从 Seria">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-05T10:50:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.870Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="垃圾回收">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%EF%BC%9A%E7%BB%8F%E5%85%B8%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '垃圾回收：经典垃圾收集器',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">垃圾回收：经典垃圾收集器</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-05T10:50:00.000Z" title="发表于 2022-12-05 10:50:00">2022-12-05</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.870Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%B7%B1%E5%85%A5%E7%90%86%E8%A7%A3Java%E8%99%9A%E6%8B%9F%E6%9C%BA/">深入理解Java虚拟机</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671982780287-700ffa4f-2e0d-488f-9661-b0bd1075c8cb.png#averageHue=%23e2e2e2&clientId=u2e979ab6-cfa9-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=331&id=u9329e536&margin=%5Bobject%20Object%5D&name=6262bab4-0127-40cf-b2f6-adb08b155925.png&originHeight=719&originWidth=755&originalType=binary&ratio=1&rotation=0&showTitle=true&size=160916&status=done&style=none&taskId=u1a47a6af-40e3-4a9c-9058-155712d181d&title=HotSpot%20%E8%99%9A%E6%8B%9F%E6%9C%BA%E7%9A%84%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8&width=348" title="HotSpot 虚拟机的垃圾收集器"><br />图中展示了七种作用于不同分代的收集器，如果两个收集器之间存在连线，就说明它们可以搭配使用，图中收集器所处的区域，则表示它是属于新生代收集器抑或是老年代收集器。<br><a name="xRcrf"></a></p>
+<h4 id="Serial-收集器"><a href="#Serial-收集器" class="headerlink" title="Serial 收集器"></a>Serial 收集器</h4><p>Serial 收集器是一个单线程工作的收集器，“单线程”的意义并不仅仅是说明它只会使用一个处理器或一条收集线程去完成垃圾收集工作，更重要的是强调在它进行垃圾收集时，必须暂停其他所有工作线程，直到它收集结束。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671983103283-c9820545-3293-400c-9056-8322d3c4de87.png#averageHue=%23f4f4f4&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=139&id=ua8a4fc5f&margin=%5Bobject%20Object%5D&name=5c6cecf7-0d56-4b2f-8ce6-53dc66b56ae7.png&originHeight=161&originWidth=751&originalType=binary&ratio=1&rotation=0&showTitle=true&size=54261&status=done&style=none&taskId=u4d4530c8-ba01-4269-a5b5-80c69e34186&title=Serial%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=646.7999877929688" title="Serial/Serial Old 收集器运行示意图"><br />从 Serial 收集器到 Parallel 收集器，再到 CMS 和 G1 收集器，最终至现在垃圾收集器的最前沿成果 Shenandoah 和 ZGC 等，用户线程的停顿时间在持续缩短，但是仍然没有办法彻底消除。<br />Serial 收集器是 HotSpot 虚拟机运行在客户端模式下的默认新生代收集器，它的优点在于简单而高效，它是所有收集器里额外内存消耗最小的，对于单核处理器或处理器核心数较少的环境来说，Serial 收集器由于没有线程交互的开销，可以获得最高的单线程收集效率。<br><a name="Eb3c4"></a></p>
+<h4 id="ParNew-收集器"><a href="#ParNew-收集器" class="headerlink" title="ParNew 收集器"></a>ParNew 收集器</h4><p>ParNew 收集器实质上是 Serial 收集器的多线程并行版本，除了同时使用多条线程进行垃圾收集之外，其余的行为包括控制参数、收集算法、Stop The World、对象分配规则、回收策略等都与 Serial 收集器完全一致。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671983585094-4f92c7a0-40e7-40e4-a6b5-27a0b5426984.png#averageHue=%23f1f1f1&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=145&id=u04555b4b&margin=%5Bobject%20Object%5D&name=3c9da17f-0c07-47dd-bb72-45b1a1cf0689.png&originHeight=163&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=59429&status=done&style=none&taskId=u8a0df765-e888-4520-b508-68257c5df21&title=ParNew%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=676.4000244140625" title="ParNew/Serial Old 收集器运行示意图"><br />ParNew 收集器除了支持多线程并行收集之外，其他与 Serial 收集器相比并没有太多创新之处，但它却有很多运行在服务端模式下的 HotSpot 虚拟机，其中有一个很重要的原因是：除了 Serial 收集器外，目前只有它能与 CMS 收集器配合工作。<br />CMS 收集器是第一款真正意义上支持并发的垃圾收集器，它首次实现了让垃圾收集线程与用户线程同时工作。但G1 收集器取代了 CMS 收集器，G1 是一个面向全堆的收集器，不再需要其他新生代收集器的配合工作。<br />ParNew 收集器由于存在线程交互的开销在单核心处理器的环境中不会有比 Serial 收集器更好的效果。<br><a name="aCDmL"></a></p>
+<h4 id="Parallel-Scavenge-收集器"><a href="#Parallel-Scavenge-收集器" class="headerlink" title="Parallel Scavenge 收集器"></a>Parallel Scavenge 收集器</h4><p>Parallel Scavenge 收集器也是一款新生代收集器，它同样是基于标记-复制算法实现的收集器，也是能够并行收集的多线程收集器。特点是它的关注点与其他收集器不同，CMS 等收集器的关注点是尽可能地缩短垃圾收集时用户线程的停顿时间，而 Parallel Scavenge 收集器的目标则是达到一个可控制的吞吐量。<br />停顿时间越短就越适合需要与用户交互或需要保证服务响应质量的程序，良好的响应速度能提升用户体验；而高吞吐量则可以最高效率地利用处理器资源，尽快完成程序的运算任务，主要适合在后台运算而不需要太多交互的分析任务。<br />虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量。这种调节方式称为垃圾收集的自适应的调节策略。自适应调节策略是 Parallel Scavenge 收集器区别于 ParNew 收集器的一个重要特性。<br><a name="sHCqi"></a></p>
+<h4 id="Serial-Old-收集器"><a href="#Serial-Old-收集器" class="headerlink" title="Serial Old 收集器"></a>Serial Old 收集器</h4><p>Serial Old 是 Serial 收集器的老年代版本，它同样是一个单线程收集器，使用标记-整理算法。这个收集器的主要意义也是供客户端模式下的 HotSpot 虚拟机使用。如果在服务端模式下，它也可能有两种用途：</p>
+<ul>
+<li>一种是在 JDK 5 以及之前的版本中与 Parallel Scavenge 收集器搭配使用；</li>
+<li>另一种就是作为 CMS 收集器发生失败时的后备预案，在并发收集发生 Concurrent Mode Failure 时使用。</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671984622183-1f27ed71-2ec9-4cdc-9367-ed43c7942ecb.png#averageHue=%23f3f3f3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=133&id=ufdf50e23&margin=%5Bobject%20Object%5D&name=a733cb0c-faf0-4f5c-90fd-93f323c99b24.png&originHeight=161&originWidth=762&originalType=binary&ratio=1&rotation=0&showTitle=true&size=53742&status=done&style=none&taskId=ua7e6d3fc-ab39-4a23-9feb-33da0d27750&title=Serial%2FSerial%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=628.6000366210938" title="Serial/Serial Old 收集器运行示意图"><br><a name="FfDdx"></a></p>
+<h4 id="Parallel-Old-收集器"><a href="#Parallel-Old-收集器" class="headerlink" title="Parallel Old 收集器"></a>Parallel Old 收集器</h4><p>Parallel Old 是 Parallel Scavenge 收集器的老年代版本，支持多线程并发收集，基于标记-整理算法实现。<br />在注重吞吐量或者处理器资源较为稀缺的场合，都可以优先考虑 Parallel Scavenge 加 Parallel Old 收集器这个组合。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671984910650-4a30ecc9-7aea-4d71-b215-21ca377218b4.png#averageHue=%23f3f3f3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=144&id=u4aa6c95d&margin=%5Bobject%20Object%5D&name=f7624728-6b23-402f-852d-0f1725feb6e9.png&originHeight=178&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=65152&status=done&style=none&taskId=uf8997692-b1fe-4b89-9ce7-0fef0e07e65&title=Parallel%20Scavenge%2FParallel%20Old%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=614.4000244140625" title="Parallel Scavenge/Parallel Old 收集器运行示意图"><br><a name="Umi85"></a></p>
+<h4 id="CMS-收集器"><a href="#CMS-收集器" class="headerlink" title="CMS 收集器"></a>CMS 收集器</h4><p>CMS 收集器是一种以获取最短回收停顿时间为目标的收集器。目前 Java 应用集中在互联网网站或者基于浏览器的 B&#x2F;S 系统的服务端上，这类应用通常都会较为关注服务的响应速度，希望系统停顿时间尽可能短，以给用户带来良好的交互体验。CMS 收集器就非常符合这类应用的需求。<br />CMS 收集器是基于标记-清除算法实现的，运作过程相对更复杂一些，整个过程分为四个步骤，包括：</p>
+<ul>
+<li>初始标记阶段仅仅只是标记一下 GC Roots 能直接关联到的对象，速度很快；</li>
+<li>并发标记阶段就是从 GC Roots 的直接关联对象开始遍历整个对象图的过程，这个过程耗时较长但是不需要停顿用户线程，可以与垃圾收集线程一起并发运行；</li>
+<li>重新标记阶段则是为了修正并发标记期间，因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间通常会比初始标记阶段稍长一些，但也远比并发标记阶段的时间短；</li>
+<li>并发清除阶段会清理删除掉标记阶段判断的已经死亡的对象，由于不需要移动存活对象，所以这个阶段也是可以与用户线程同时并发的。</li>
+</ul>
+<p>其中初始标记、重新标记这两个步骤仍然需要“Stop The World”。<br />由于在整个过程中耗时最长的并发标记和并发清除阶段中，垃圾收集器线程都可以与用户线程一起工作，所以从总体上来说，CMS 收集器的内存回收过程是与用户线程一起并发执行的。<br />图中可以比较清楚地看到 CMS 收集器的运作步骤中并发和需要停顿的阶段：<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671985292763-fdbc4947-16f2-4a5b-9331-d8e6b2dcb081.png#averageHue=%23e5e5e3&clientId=u00877624-f082-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=141&id=u67376f47&margin=%5Bobject%20Object%5D&name=50fdf46f-02aa-4530-a2ef-d6e0bdcd9cd9.png&originHeight=164&originWidth=758&originalType=binary&ratio=1&rotation=0&showTitle=true&size=88065&status=done&style=none&taskId=ue0ce0eaf-93c8-47cf-8b11-2f31a8dc01f&title=Concurrent%20Mark%20Sweep%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=651.4000244140625" title="Concurrent Mark Sweep 收集器运行示意图"><br />CMS 最主要的优点在于：并发收集、低停顿。但是它有以下三个明显的缺点：</p>
+<ul>
+<li>对处理器资源非常敏感。面向并发设计的程序都对处理器资源比较敏感。在并发阶段，它虽然不会导致用户线程停顿，但却会因为占用了一部分线程而导致应用程序变慢，降低总吞吐量。如果应用本来的处理器负载就很高，还要分出运算能力去执行收集器线程，就可能导致用户程序的执行速度忽然大幅降低；</li>
+<li>由于 CMS 收集器无法处理“浮动垃圾”，有可能出现“ 并发失败”进而导致另一次完全“Stop The World”的 Full GC 的产生。在 CMS 的并发标记和并发清理阶段，用户线程是还在继续运行的，程序在运行自然就还会伴随有新的垃圾对象不断产生，但这一部分垃圾对象是出现在标记过程结束以后，CMS 无法在当次收集中处理掉它们，只好留待下一次垃圾收集时再清理掉。这一部分垃圾就称为“浮动垃圾”。由于在垃圾收集阶段用户线程还需要持续运行，那就还需要预留足够内存空间提供给用户线程使用，因此 CMS 收集器不能像其他收集器那样等待到老年代几乎完全被填满了再进行收集，必须预留一部分空间供并发收集时的程序运作使用。要是 CMS 运行期间预留的内存无法满足程序分配新对象的需要，就会出现一次“并发失败”，这时候虚拟机就会冻结用户线程的执行，临时启用 Serial Old 收集器来重新进行老年代的垃圾收集，但这样停顿时间就很长了；</li>
+<li>CMS 基于“标记-清除”算法实现，这意味着收集结束时会有大量空间碎片产生。空间碎片过多时，将会给大对象分配带来很大麻烦，往往会出现老年代还有很多剩余空间，但就是无法找到足够大的连续空间来分配当前对象，而不得不提前触发一次 Full GC 的情况。<br><a name="EaM1n"></a></li>
+</ul>
+<h4 id="Garbage-First-收集器"><a href="#Garbage-First-收集器" class="headerlink" title="Garbage First 收集器"></a>Garbage First 收集器</h4><p>Garbage First（简称 G1）收集器开创了收集器面向局部收集的设计思路和基于 Region 的内存布局形式。<br />在 G1 收集器出现之前的所有其他收集器，包括 CMS 在内，垃圾收集的目标范围要么是整个新生代（Minor GC），要么就是整个老年代（Major GC），再要么就是整个 Java 堆（Full GC）。而 G1 跳出了这个范围，它可以面向堆内存任何部分来组成回收集进行回收，衡量标准不再是它属于哪个分代，而是哪块内存中存放的垃圾数量最多，回收收益最大，这就是 G1 收集器的 Mixed GC 模式。<br />G1 开创的基于 Region 的堆内存布局是它能够实现这个目标的关键。虽然 G1 也仍是遵循分代收集理论设计的，但其堆内存的布局与其他收集器有非常明显的差异：G1不再坚持固定大小以及固定数量的分代区域划分，而是把连续的 Java 堆划分为多个大小相等的独立区域（Region），每一个 Region 都可以根据需要，扮演新生代的 Eden 空间、Survivor 空间，或者老年代空间。收集器能够对扮演不同角色的 Region 采用不同的策略去处理，这样无论是新创建的对象还是已经存活了一段时间、熬过多次收集的旧对象都能获取很好的收集效果<br />Region 中还有一类特殊的 Humongous 区域，专门用来存储大对象。G1 认为只要大小超过了一个 Region 容量一半的对象即可判定为大对象。对于那些超过了整个 Region 容量的超级大对象，将会被存放在 N 个连续的 Humongous Region 之中，G1 的大多数行为都把 Humongous Region 作为老年代的一部分来进行看待。<br />虽然 G1 仍然保留新生代和老年代的概念，但新生代和老年代不再是固定的了，它们都是一系列区域（不需要连续）的动态集合。G1 收集器之所以能建立可预测的停顿时间模型，是因为它将 Region 作为单次回收的最小单元，即每次收集到的内存空间都是 Region 大小的整数倍，这样可以有计划地避免在整个 Java 堆中进行全区域的垃圾收集。具体的处理思路是让 G1 收集器去跟踪各个 Region 里面的垃圾堆积的“价值”大小，价值即回收所获得的空间大小以及回收所需时间的经验值，然后在后台维护一个优先级列表，每次根据用户设定允许的收集停顿时间，优先处理回收价值收益最大的那些 Region，这也就是“Garbage First”名字的由来。这种使用 Region 划分内存空间，以及具有优先级的区域回收方式，保证了 G1 收集器在有限的时间内获取尽可能高的收集效率。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671991827802-5de78ccb-ff1a-44de-9477-db584209f5d4.png#averageHue=%23e8e8e8&clientId=uf37728cb-50e0-4&crop=0&crop=0&crop=1&crop=1&from=drop&height=424&id=u2cf9068e&margin=%5Bobject%20Object%5D&name=c81076a4-3799-410c-adab-e9a3dc7f8c21.png&originHeight=574&originWidth=771&originalType=binary&ratio=1&rotation=0&showTitle=true&size=74451&status=done&style=none&taskId=u8f84b2ec-4385-48c0-9f06-32bc38d64e1&title=G1%20%E6%94%B6%E9%9B%86%E5%99%A8%20Region%20%E5%88%86%E5%8C%BA%E7%A4%BA%E6%84%8F%E5%9B%BE&width=569" title="G1 收集器 Region 分区示意图"><br />G1 收集器的运作过程大致可划分为以下四个步骤：</p>
+<ul>
+<li>初始标记：仅仅只是标记一下 GC Roots 能直接关联到的对象，并且修改 TAMS 指针的值，让下一阶段用户线程并发运行时，能正确地在可用的Region 中分配新对象。这个阶段需要停顿线程，但耗时很短，而且是借用进行 Minor GC 的时候同步完成的，所以 G1 收集器在这个阶段实际并没有额外的停顿；</li>
+<li>并发标记：从 GC Root 开始对堆中对象进行可达性分析，递归扫描整个堆里的对象图，找出要回收的对象，这阶段耗时较长，但可与用户程序并发执行。当对象图扫描完成以后，还要重新处理 SATB 记录下的在并发时有引用变动的对象；</li>
+<li>最终标记：对用户线程做另一个短暂的暂停，用于处理并发阶段结束后仍遗留下来的最后那少量的 SATB 记录；</li>
+<li>筛选回收：负责更新 Region 的统计数据，对各个 Region 的回收价值和成本进行排序，根据用户所期望的停顿时间来制定回收计划，可以自由选择任意多个 Region 构成回收集，然后把决定回收的那一部分 Region 的存活对象复制到空的 Region 中，再清理掉整个旧 Region 的全部空间。这里的操作涉及存活对象的移动，是必须暂停用户线程，由多条收集器线程并行完成的。</li>
+</ul>
+<p>G1 收集器除了并发标记外，其余阶段也是要完全暂停用户线程的，它并非纯粹地追求低延迟，目标是在延迟可控的情况下获得尽可能高的吞吐量。G1 不是仅仅面向低延迟，停顿用户线程能够最大幅度提高垃圾收集效率，为了保证吞吐量所以才选择了完全暂停用户线程的实现方案。<br /><img src="https://cdn.nlark.com/yuque/0/2022/png/25368844/1671993517640-0de2ea4b-a687-4161-b831-c290008888f2.png#averageHue=%23e9e9e8&clientId=u8af0c299-d289-4&crop=0&crop=0&crop=1&crop=1&from=paste&height=162&id=u80d3d8d6&margin=%5Bobject%20Object%5D&name=3b33f2da-713f-4e35-b017-1643a64ecfe7.png&originHeight=192&originWidth=832&originalType=binary&ratio=1&rotation=0&showTitle=true&size=119436&status=done&style=none&taskId=ue8ecf88f-dbd1-4df8-be8e-6759ded5593&title=G1%20%E6%94%B6%E9%9B%86%E5%99%A8%E8%BF%90%E8%A1%8C%E7%A4%BA%E6%84%8F%E5%9B%BE&width=702.6000366210938" title="G1 收集器运行示意图"><br />相比 CMS，G1 的优点有很多，暂且不论可以指定最大停顿时间、分 Region 的内存布局、按收益动态确定回收集这些创新性设计，单从最传统的算法理论上看，G1 也更有发展潜力。与 CMS 的“标记-清除”算法不同，G1 从整体来看是基于“标记-整理”算法实现的收集器，但从局部（两个 Region 之间）上看又是基于“标记-复制”算法实现，无论如何，这两种算法都意味着 G1 运作期间不会产生内存空间碎片，垃圾收集完成之后能提供规整的可用内存。这种特性有利于程序长时间运行，在程序为大对象分配内存时不容易因无法找到连续内存空间而提前触发下一次收集。<br />比起 CMS，G1 的弱项也有很多，如在用户程序运行过程中，G1 无论是为了垃圾收集产生的内存占用还是程序运行时的额外执行负载都要比 CMS 要高。</p>
+<ul>
+<li>就内存占用来说，虽然 G1 和 CMS 都使用卡表来处理跨代指针，但 G1 的卡表实现更为复杂，而且堆中每个 Region，无论扮演的是新生代还是老年代角色，都必须有一份卡表，这导致 G1 的记忆集可能会占更多的内存空间；相比起来 CMS 的卡表就相当简单，只有唯一一份，而且只需要处理老年代到新生代的引用，由于新生代的对象具有朝生夕灭的不稳定性，引用变化频繁，能省下这个区域的维护开销是很划算的；</li>
+<li>在执行负载的角度上，同样由于两个收集器各自的细节实现特点导致了用户程序运行时的负载会有不同，譬如它们都使用到写屏障，CMS 用写后屏障来更新维护卡表；而 G1 除了使用写后屏障来进行同样的卡表维护操作外，为了实现原始快照搜索算法，还需要使用写前屏障来跟踪并发时的指针变化情况。相比起增量更新算法，原始快照搜索能够减少并发标记和重新标记阶段的消耗，避免 CMS 那样在最终标记阶段停顿时间过长的缺点，但是在用户程序运行过程中确实会产生由跟踪引用变化带来的额外负担。由于 G1 对写屏障的复杂操作要比 CMS 消耗更多的运算资源，所以 CMS 的写屏障实现是直接的同步操作，而 G1就不得不将其实现为类似于消息队列的结构，把写前屏障和写后屏障中要做的事情都放到队列里，然后再异步处理。</li>
+</ul>
+<p>在小内存应用上 CMS 的表现大概率仍然要会优于 G1，而在大内存应用上 G1 则大多能发挥其优势。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/">垃圾回收</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%EF%BC%9A%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">垃圾回收：垃圾收集算法</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/06/%E7%BD%91%E7%BB%9C%E5%9F%BA%E7%A1%80%EF%BC%9ATCP_IP%20%E7%BD%91%E7%BB%9C%E6%A8%A1%E5%9E%8B/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">网络基础：TCP/IP 网络模型</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%EF%BC%9A%E5%88%A4%E6%96%AD%E5%8F%AF%E5%9B%9E%E6%94%B6%E5%AF%B9%E8%B1%A1/" title="垃圾回收：判断可回收对象"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-05</div><div class="title">垃圾回收：判断可回收对象</div></div></a></div><div><a href="/2022/12/05/%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%EF%BC%9A%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95/" title="垃圾回收：垃圾收集算法"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-05</div><div class="title">垃圾回收：垃圾收集算法</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#Serial-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.</span> <span class="toc-text">Serial 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ParNew-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">2.</span> <span class="toc-text">ParNew 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Parallel-Scavenge-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">Parallel Scavenge 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Serial-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">4.</span> <span class="toc-text">Serial Old 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Parallel-Old-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">5.</span> <span class="toc-text">Parallel Old 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CMS-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">6.</span> <span class="toc-text">CMS 收集器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Garbage-First-%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">7.</span> <span class="toc-text">Garbage First 收集器</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

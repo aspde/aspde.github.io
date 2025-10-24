@@ -1,0 +1,193 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>解决方案：合并队列秒杀 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="场景电商的大促活动，推一些爆品，爆品在秒杀的时候 rt（response time）非常高，并发量上不来。 问题每个商品在数据库里都是一行记录，字段包括商品 id，库存数量等，每次用户下单就进行 update 操作，对这一行的库存进行扣减。如何防止超卖？多个线程去查都有库存然后扣减，肯定会有超卖现象的发生，所以进行扣减都是用 update 判断库存够不够然后对库存进行扣减，这样本质上就持有了行锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="解决方案：合并队列秒杀">
+<meta property="og:url" content="http://example.com/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%90%88%E5%B9%B6%E9%98%9F%E5%88%97%E7%A7%92%E6%9D%80/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="场景电商的大促活动，推一些爆品，爆品在秒杀的时候 rt（response time）非常高，并发量上不来。 问题每个商品在数据库里都是一行记录，字段包括商品 id，库存数量等，每次用户下单就进行 update 操作，对这一行的库存进行扣减。如何防止超卖？多个线程去查都有库存然后扣减，肯定会有超卖现象的发生，所以进行扣减都是用 update 判断库存够不够然后对库存进行扣减，这样本质上就持有了行锁">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-11T10:20:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.873Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="解决方案">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E5%90%88%E5%B9%B6%E9%98%9F%E5%88%97%E7%A7%92%E6%9D%80/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '解决方案：合并队列秒杀',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">解决方案：合并队列秒杀</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-11T10:20:00.000Z" title="发表于 2022-12-11 10:20:00">2022-12-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.873Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%A1%B9%E7%9B%AE%E5%AE%9E%E6%88%98/">项目实战</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p><a name="l6pBN"></a></p>
+<h4 id="场景"><a href="#场景" class="headerlink" title="场景"></a>场景</h4><p>电商的大促活动，推一些爆品，爆品在秒杀的时候 rt（response time）非常高，并发量上不来。<br><a name="RXHHO"></a></p>
+<h4 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h4><p>每个商品在数据库里都是一行记录，字段包括商品 id，库存数量等，每次用户下单就进行 update 操作，对这一行的库存进行扣减。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680585450302-551c9939-403d-43b6-8580-d3c429d7750a.png#averageHue=%23eeeeee&clientId=u03d45f88-a5d7-4&from=paste&height=78&id=u1a85832d&name=image.png&originHeight=145&originWidth=784&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=15002&status=done&style=none&taskId=u48c2045b-8fd9-45a6-87d7-a9a65f04c66&title=&width=424.20001220703125"><br />如何防止超卖？<br />多个线程去查都有库存然后扣减，肯定会有超卖现象的发生，所以进行扣减都是用 update 判断库存够不够然后对库存进行扣减，这样本质上就持有了行锁。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680586027093-3afc4e67-4bc5-4391-91b9-18eea0d4fd37.png#averageHue=%23f7b4b4&clientId=u03d45f88-a5d7-4&from=paste&height=62&id=u956c1196&name=image.png&originHeight=88&originWidth=842&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=79029&status=done&style=none&taskId=u06fd70f9-3532-433e-8233-d165083bcb4&title=&width=593.6000366210938"><br />多个用户争抢一个商品，行锁底层是串行执行的，所以 rt 会飙高，tps（transaction per second）上不去。<br />为什么不直接把库存放到 Redis 里面去进行扣减？<br />在业务场景中，在扣减库存的同时还要去写一张库存的流水表，这两个操作是在一个事务当中的，如果把库存写在 Redis 里面，扣减库存和写库存的流水表怎么去保证原子性是一个棘手的问题。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680589939901-e34f7677-1e46-4f5e-bde0-d211801f4185.png#averageHue=%23f6f5f5&clientId=u03d45f88-a5d7-4&from=paste&height=206&id=u9239d924&name=image.png&originHeight=435&originWidth=709&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=45445&status=done&style=none&taskId=u7eff871a-bcb8-4fae-89aa-9e1fcc38086&title=&width=336.20001220703125"><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680590316512-226164a3-6472-4ea0-8cba-b1dd3a698331.png#averageHue=%23f1f0ef&clientId=u03d45f88-a5d7-4&from=paste&height=165&id=u9f776773&name=image.png&originHeight=380&originWidth=870&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=103103&status=done&style=none&taskId=ud5a02977-dd3b-4e74-a772-870983c3233&title=&width=378"><br><a name="ghX8s"></a></p>
+<h4 id="解决方案"><a href="#解决方案" class="headerlink" title="解决方案"></a>解决方案</h4><p>针对并发资源的争抢，提升并发度，主要是降低锁的粒度，降低锁的持有时间。<br><a name="ILtMH"></a></p>
+<h5 id="降低锁粒度"><a href="#降低锁粒度" class="headerlink" title="降低锁粒度"></a>降低锁粒度</h5><p>可以采用分库分表的方式，但是分库分表本身可能会涉及到数据的迁移，改造的成本比较大。只有少量的爆品会有这个并发的问题，如果为了这么少的商品去做整个数据库模型层面的改动，成本会比较高。<br><a name="w7JWv"></a></p>
+<h5 id="降低锁持有时间"><a href="#降低锁持有时间" class="headerlink" title="降低锁持有时间"></a>降低锁持有时间</h5><p><a name="XdCxH"></a></p>
+<h6 id="合并队列"><a href="#合并队列" class="headerlink" title="合并队列"></a>合并队列</h6><p>在高并发的情况下，很多用户都来同时抢一个商品，可以将多个用户合并成一个队列，这个队列批量的进行一次数据库的 io 去批量的进行扣减。在内存里面设计一个队列，队列在非常少的一个时间段比如200ms，这 200ms 所有商品的请求都放在队列里面，然后再起一个异步线程把这 200ms 里面所有这个商品的库存扣减一并进行扣减，这样就把 tps 从 500 拉到 2000 以上。<br />200ms 是怎么确定下来的？异步线程，用户是不是还在同步的等待？<br />对用户来说的确是在同步等待，不过一个用户运气最差的话，可能会等待 200ms，但是基于业务场景这个完全是能够容忍的。<br />是否生成队列也是根据当前的并发数，在内存里面有一个计数器，用来记录当前商品的并发请求。每个请求过来就会给它计数，如果当前商品的并发超过了 3，就会创建队列，并不是说每个商品都会去走合并队列的逻辑。<br />这个方案确实降低了 IO 的次数，但还有其他的问题。</p>
+<ul>
+<li>异步合并的线程报错了，对上游来说等待超时了，上游会认为库存没有扣减成功，对于实际的库存模块来说有两种可能，有可能扣减成功也有可能没有扣减成功，因为报错可能是在提交事务之前，也可能是在提交事务之后，如果是在库存事务提交之后报错的，上游的订单状态还是没有扣减库存成功，但是库存却扣减完了，这就会产生数据不一致的问题。此时上游会发出一个消息，消息里面会带着订单号，通过消息和库存的流水号进行库存的回滚，监听到消息，判断订单有没有扣减库存，如果扣减了库存，就会进行回滚，如果没有查到库存流水记录，就不会回滚，这样就达到了上下游的数据一致性，类似于 seata 的解决方案；</li>
+</ul>
+<p><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680593171767-f2d75aa9-e31c-4e98-bc7d-e9aec52fe5a4.png#averageHue=%23e6e3e3&clientId=u03d45f88-a5d7-4&from=paste&height=159&id=ub82d9988&name=image.png&originHeight=336&originWidth=930&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=96556&status=done&style=none&taskId=ua19e7fce-934e-44de-b14e-ab002798aca&title=&width=439"><br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680593385438-e9c232a0-dd5d-4967-a0fb-c55d6937dd56.png#averageHue=%23ebe9e8&clientId=u03d45f88-a5d7-4&from=paste&height=207&id=u2ffda3dc&name=image.png&originHeight=378&originWidth=806&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=86880&status=done&style=none&taskId=u50b5b67d-a77d-4408-a6f8-458a5b4e2d9&title=&width=440.8000183105469"></p>
+<ul>
+<li>商品库存只有 1 件了，内存合并之后需要扣 3 件，比如合并了两个用户，一个用户要买 2 件，另外一个用户要买 1 件，异步线程合并扣减可能是扣减不成功的。针对这种极端情况，会退化成一个循环，每个用户购买的数量从大到小去进行扣减，先去尝试扣减两个，扣减失败再去扣减一个，尽量保证买的多的用户先扣减成功。<br><a name="SFjc5"></a></li>
+</ul>
+<h6 id="事务"><a href="#事务" class="headerlink" title="事务"></a>事务</h6><p>事务里先进行一个 update，再进行一个 insert，update 要放到第二条语句执行。如果先 update 再 insert，在insert 的时间也在持有 update 的行锁。先 insert 再 update，insert 的时间没有持有 update 的行锁，降低了锁的持有时间。库存流水表本身特别大，虽然针对流水表做了冷热分离，数据量还是很大，随着时间的增加，insert 语句插入去构建索引耗时会越来越多。<br />最开始先 update 再 insert，改成先 insert 再 update，tps 从 3000 拉到 5000。在高并发的情况下，很小的优化提升了很高的并发度。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680594871787-c0176d5a-5f80-40f2-b2b6-846e1f365b15.png#averageHue=%23faf8f8&clientId=u03d45f88-a5d7-4&from=paste&height=230&id=ua3f13752&name=image.png&originHeight=376&originWidth=683&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=56754&status=done&style=none&taskId=u11fe039e-1841-4283-8f2b-5b605c924fb&title=&width=418.3999938964844"><br><a name="uucE1"></a></p>
+<h4 id="缓存"><a href="#缓存" class="headerlink" title="缓存"></a>缓存</h4><p>库存也有缓存，比如商品列表，商品详情页都要去查库存的数据，查询都是放在 Redis 上的。<br />如何保证数据库和 Redis 的一致性？<br />最开始用的是 cache aside，每次更新数据库之后，都会去删一下缓存，这里面有两个问题。</p>
+<ul>
+<li>在高并发的情况下，删缓存也是同步的过程，客户端还是要等待，虽然 Redis 的操作是毫秒级别，针对这种性能极高的接口，这个时间也是想干掉的；</li>
+<li>缓存的命中率非常低，库存更新之后上游并没有查多少次又会更新成另外一个数据，频繁刷新成新的值。</li>
+</ul>
+<p>基于业务场景，系统只要保证不超卖就行了，页面上看到的库存实时性要求不高，所以采用了监听 binlog 的方式，用 binlog 去监听数据库的变更，异步地去刷新 Redis。通过这种方法改造之后，代码完全不用关心缓存，直接用另外一个模块监听 binlog 进行刷新。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680598953979-1bf4f44b-40c8-4b7d-9e27-a070bb0cee7d.png#averageHue=%23efefef&clientId=u0765a597-e8f3-4&from=paste&height=244&id=uaa6e6e67&name=image.png&originHeight=395&originWidth=606&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=86239&status=done&style=none&taskId=u15cdc9b2-c677-4bf6-b12e-f77b8366c6e&title=&width=373.8000183105469"><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680599168407-463494d2-eb44-4777-be66-1597a02560a7.png#averageHue=%23f4f4f3&clientId=u0765a597-e8f3-4&from=paste&height=251&id=ua03801a8&name=image.png&originHeight=384&originWidth=551&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=59659&status=done&style=none&taskId=u553e266d-7ab5-4730-b586-2f7ccbcbe39&title=&width=360.8000183105469"><br />针对缓存命中率不高的问题，监听 binlog 模块，设计了一个时间窗口，比如一个商品在 5 秒钟之内有更新，只在 5 秒钟结束的时候去刷新 Redis。这样就避免在高并发的情况下缓存频繁覆盖 Redis 的值。<br />这样还有一个问题，binlog 可能是并行过来的，后面的 binlog 可能先被监听到，这样会有消息乱序的问题。解决方案是在表里面加了一个版本号，每次库存更新就给版本号加 1。监听 binlog 的时候，首先判断 Redis 里面的版本号，如果大于版本号，才会更新，这样就能避免老的 binlog 把最新的库存值覆盖掉，能够保证数据库的数据只是有延迟，但一定能达到最终一致。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680600710749-17d047eb-c0cc-4af1-a627-e82bd1634b60.png#averageHue=%23eeeceb&clientId=u0765a597-e8f3-4&from=paste&height=248&id=u11d8b622&name=image.png&originHeight=341&originWidth=849&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=104931&status=done&style=none&taskId=uf471b448-0f3b-4bad-89b0-abb6370e601&title=&width=617.2000122070312"><br />还有一个业务上的考虑，对于上游来说库存有没有比库存有多少的敏感度要高很多，因为一旦库存没有，前端的页面会直接置灰。采用了异步刷新之后，真实的库存跟页面上看到的库存肯定是有延迟的，比如页面上看到的库存可能是 10，9，8，7 在减少的过程，但是实际上看到的库存可能已经变成 0 了。一旦扣库存失败，库存没有了之后，直接把缓存里的数据同步更新为 0。<br />binlog 过来之后 0 已经是最新的值了，binlog 会不会把最新的值覆盖掉？<br />通过版本号的对比，不会去进行覆盖。异步的 binlog 过来之后，会判断 0 已经是最新的版本了，会直接把旧的 binlog 丢弃掉。</p>
+<blockquote>
+<p>时间窗口如何设计？如何实现？<br>多个线程都判断版本是老的，会不会都去覆盖？<br>判断版本是不是要加分布式锁？</p>
+</blockquote>
+<p><a name="mEPQP"></a></p>
+<h4 id="缺点"><a href="#缺点" class="headerlink" title="缺点"></a>缺点</h4><p>内存队列很难横向的进行扩容，因为合并完全是在内存的层面，单机的内存，cpu都是有上限的， 肯定要采取集群的模式，加了机器之后每台机器合并的效果就会变差，打到数据库上的线程也会变多，所以服务的横向扩容弹性不是很好。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680601918202-7f1e8400-6253-400c-944e-357d73172c02.png#averageHue=%23eeecec&clientId=u0765a597-e8f3-4&from=paste&height=185&id=u42816c4f&name=image.png&originHeight=243&originWidth=595&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=95022&status=done&style=none&taskId=u880897d6-94cd-4fe4-b2e3-8cf8640b5a3&title=&width=454"><br />优化：把扣减库存的接口单独拎出来，放到一个集群里面，专门拿几台机器做这个事情，避免跟其他一些比如报表，查询的接口共享，争抢资源，尽量压榨单机最好的性能。<br />因为集群很难横向扩容，所以有很多调优的过程，比如等待 200ms，线程池设置的大小，并发的数量，多大创建队列，这些参数都是产生在逐步调优的过程。<br><a name="NdGVo"></a></p>
+<h4 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h4><p>淘宝的核心链路的库存，也是采用排队的机制，只是在 MySQL 这一层用中间件的方式进行集中的排队，而不是在应用机器的内存里面，所以没有横向扩容的问题，但是没有开源。<br />内存合并的解决方案参考了 MySQL 每次更新并不会去刷磁盘，而是在内存里面有 ChangeBuffer 这么一个缓存队列。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1680603054748-83262d1a-e4f3-4d11-8763-933eb2e039a2.png#averageHue=%234e3cd1&clientId=u0765a597-e8f3-4&from=paste&height=338&id=ub5a859b6&name=image.png&originHeight=468&originWidth=932&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=268509&status=done&style=none&taskId=ue6e29a23-63ff-4ed4-83e5-0b0fa30e422&title=&width=674"><br />好的思想都是相互借鉴的，在学八股文的时候，不仅要知道它们是什么样子，而且项目中如果遇到一些挑战，能够灵活的应用这些知识。内存合并虽然用到了八股文的一些技术，但也针对实际的业务场景做了很多妥协，最后的解决方案并不完美，但也能满足业务的需要，这就要求达到两个点：</p>
+<ul>
+<li>对业务场景理解的比较深刻；</li>
+<li>对常见的架构模式和技术的解决方案比较熟悉。</li>
+</ul>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88/">解决方案</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E4%BA%8B%E5%8A%A1%E5%9B%9E%E8%B0%83%E7%BC%96%E7%A8%8B/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">解决方案：事务回调编程</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B6%88%E6%81%AF%E8%A1%A8%E8%A7%A3%E5%86%B3%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">解决方案：消息表解决分布式事务</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9ASpring%20%E5%BC%82%E6%AD%A5%E7%BA%BF%E7%A8%8B%E6%B1%A0/" title="解决方案：Spring 异步线程池"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：Spring 异步线程池</div></div></a></div><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E4%BA%8B%E5%8A%A1%E5%9B%9E%E8%B0%83%E7%BC%96%E7%A8%8B/" title="解决方案：事务回调编程"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：事务回调编程</div></div></a></div><div><a href="/2022/12/11/%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88%EF%BC%9A%E6%B6%88%E6%81%AF%E8%A1%A8%E8%A7%A3%E5%86%B3%E5%88%86%E5%B8%83%E5%BC%8F%E4%BA%8B%E5%8A%A1/" title="解决方案：消息表解决分布式事务"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-11</div><div class="title">解决方案：消息表解决分布式事务</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">场景</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">问题</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">3.</span> <span class="toc-text">解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%99%8D%E4%BD%8E%E9%94%81%E7%B2%92%E5%BA%A6"><span class="toc-number">3.1.</span> <span class="toc-text">降低锁粒度</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%99%8D%E4%BD%8E%E9%94%81%E6%8C%81%E6%9C%89%E6%97%B6%E9%97%B4"><span class="toc-number">3.2.</span> <span class="toc-text">降低锁持有时间</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%90%88%E5%B9%B6%E9%98%9F%E5%88%97"><span class="toc-number">3.2.1.</span> <span class="toc-text">合并队列</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E4%BA%8B%E5%8A%A1"><span class="toc-number">3.2.2.</span> <span class="toc-text">事务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%AD%98"><span class="toc-number">4.</span> <span class="toc-text">缓存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%BA%E7%82%B9"><span class="toc-number">5.</span> <span class="toc-text">缺点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">6.</span> <span class="toc-text">参考</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

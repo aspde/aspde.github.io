@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>TCP：TCP 连接建立 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="TCP 三次握手过程TCP 是面向连接的协议，所以使用 TCP 前必须先建立连接，而建立连接是通过三次握手来进行的。三次握手的过程如下图：一开始客户端和服务端都处于 CLOSE 状态。先是服务端主动监听某个端口，处于 LISTEN 状态。客户端会随机初始化序号（client_isn），将此序号置于 TCP 首部的「序号」字段中，同时把 SYN 标志位置为 1，表示 SYN 报文。接着把第一个 S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP：TCP 连接建立">
+<meta property="og:url" content="http://example.com/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="TCP 三次握手过程TCP 是面向连接的协议，所以使用 TCP 前必须先建立连接，而建立连接是通过三次握手来进行的。三次握手的过程如下图：一开始客户端和服务端都处于 CLOSE 状态。先是服务端主动监听某个端口，处于 LISTEN 状态。客户端会随机初始化序号（client_isn），将此序号置于 TCP 首部的「序号」字段中，同时把 SYN 标志位置为 1，表示 SYN 报文。接着把第一个 S">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-06T15:10:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.869Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'TCP：TCP 连接建立',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">TCP：TCP 连接建立</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-06T15:10:00.000Z" title="发表于 2022-12-06 15:10:00">2022-12-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.869Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p><a name="n2OHJ"></a></p>
+<h4 id="TCP-三次握手过程"><a href="#TCP-三次握手过程" class="headerlink" title="TCP 三次握手过程"></a>TCP 三次握手过程</h4><p>TCP 是面向连接的协议，所以使用 TCP 前必须先建立连接，而建立连接是通过三次握手来进行的。三次握手的过程如下图：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685478517324-1438d759-8208-49a9-bd25-1dd430274ba0.png#averageHue=%23f9eed0&clientId=ufb82b0d9-a62b-4&from=paste&height=420&id=u672fb511&originHeight=928&originWidth=1257&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=475040&status=done&style=none&taskId=u2a1a2707-c4f6-4ea4-a9bc-a432c42079d&title=&width=569.2000122070312" alt="image.png"><br />一开始客户端和服务端都处于 CLOSE 状态。先是服务端主动监听某个端口，处于 LISTEN 状态。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685567146029-efdc39cf-444d-4e7f-ba37-40a3f2200ef6.png#averageHue=%23f1e9da&clientId=u7ece8856-6a53-4&from=paste&height=430&id=u0b133a41&originHeight=689&originWidth=1141&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=308402&status=done&style=none&taskId=uf792f298-9b04-41a0-b915-bb8a9b5326d&title=&width=712" alt="image.png"><br />客户端会随机初始化序号（client_isn），将此序号置于 TCP 首部的「序号」字段中，同时把 SYN 标志位置为 1，表示 SYN 报文。接着把第一个 SYN 报文发送给服务端，表示向服务端发起连接，该报文不包含应用层数据，之后客户端处于 SYN-SENT 状态。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685567172369-93165629-1ef0-407c-a76f-9e04274021d9.png#averageHue=%23f1eadd&clientId=u7ece8856-6a53-4&from=paste&height=421&id=ua55b476b&originHeight=672&originWidth=1136&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=397938&status=done&style=none&taskId=ud6d08990-4714-4958-922e-957e08d6acc&title=&width=711" alt="image.png"><br />服务端收到客户端的 SYN 报文后，首先服务端也随机初始化自己的序号（server_isn），将此序号填入 TCP 首部的「序号」字段中，其次把 TCP 首部的「确认应答号」字段填入 client_isn + 1，接着把 SYN 和 ACK 标志位置为 1。最后把该报文发给客户端，该报文也不包含应用层数据，之后服务端处于 SYN-RCVD 状态。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685567438682-9c29900c-e932-4443-977d-1981e1fa482d.png#averageHue=%23f3f3f0&clientId=u7ece8856-6a53-4&from=paste&height=413&id=ueeeb261c&originHeight=679&originWidth=1170&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=316809&status=done&style=none&taskId=u3b524a87-0e21-48c3-9972-1335c7181e0&title=&width=711" alt="image.png"><br />客户端收到服务端报文后还要向服务端回应最后一个应答报文，首先该应答报文 TCP 首部 ACK 标志位置为 1 ，其次「确认应答号」字段填入 server_isn + 1 ，最后把报文发送给服务端，这次报文可以携带客户到服务端的数据，之后客户端处于 ESTABLISHED 状态。<br />服务端收到客户端的应答报文后也进入 ESTABLISHED 状态。<br />从上面的过程可以发现第三次握手是可以携带数据的，前两次握手是不可以携带数据的，这也是面试常问的题。<br />一旦完成三次握手，双方都处于 ESTABLISHED 状态，此时连接就已建立完成，客户端和服务端就可以相互发送数据了。<br><a name="NH9GO"></a></p>
+<h4 id="为什么是三次握手？不是两次、四次？"><a href="#为什么是三次握手？不是两次、四次？" class="headerlink" title="为什么是三次握手？不是两次、四次？"></a>为什么是三次握手？不是两次、四次？</h4><p>比较常见的回答是：因为三次握手才能保证双方具有接收和发送的能力。<br />回答是没问题的，但是这个回答是片面的，并没有说出主要的原因。<br />TCP 连接：用于保证可靠性和流量控制维护的某些状态信息，这些信息的组合，包括 Socket、序列号和窗口大小称为连接。<br />TCP 建立连接时通过三次握手能防止历史连接的建立，能减少双方不必要的资源开销，能帮助双方同步初始化序列号。序列号能够保证数据包不重复、不丢弃和按序传输。<br />不使用「两次握手」和「四次握手」的原因：</p>
+<ul>
+<li>「两次握手」：无法防止历史连接的建立，会造成双方资源的浪费，也无法可靠的同步双方序列号；</li>
+<li>「四次握手」：三次握手就已经理论上是最少可靠连接建立，所以不需要使用更多的通信次数。<br><a name="bLtrR"></a></li>
+</ul>
+<h5 id="为什么三次握手才可以初始化-Socket、序列号和窗口大小并建立-TCP-连接？"><a href="#为什么三次握手才可以初始化-Socket、序列号和窗口大小并建立-TCP-连接？" class="headerlink" title="为什么三次握手才可以初始化 Socket、序列号和窗口大小并建立 TCP 连接？"></a>为什么三次握手才可以初始化 Socket、序列号和窗口大小并建立 TCP 连接？</h5><p><a name="EtRNn"></a></p>
+<h6 id="避免历史连接"><a href="#避免历史连接" class="headerlink" title="避免历史连接"></a>避免历史连接</h6><p>三次握手的首要原因是为了防止旧的重复连接初始化造成混乱。<br />考虑一个场景，客户端先发送了 SYN（seq &#x3D; 90）报文，然后客户端宕机了，而且这个 SYN 报文还被网络阻塞了，服务端并没有收到，接着客户端重启后又重新向服务端建立连接，发送了 SYN（seq &#x3D; 100）报文（注意！不是重传 SYN，重传的 SYN 的序列号是一样的）。<br />三次握手是如何阻止历史连接的：<br />客户端连续发送多次 SYN（都是同一个四元组）建立连接的报文，在网络拥堵情况下：</p>
+<ul>
+<li>一个「旧 SYN 报文」比「最新的 SYN」 报文早到达了服务端，那么此时服务端就会回一个 SYN + ACK 报文给客户端，此报文中的确认号是 91（90+1）；</li>
+<li>客户端收到后发现自己期望收到的确认号应该是 100 + 1，而不是 90 + 1，于是就会回 RST 报文；</li>
+<li>服务端收到 RST 报文后就会释放连接；</li>
+<li>后续最新的 SYN 抵达了服务端后客户端与服务端就可以正常的完成三次握手了。</li>
+</ul>
+<p>上述中的「旧 SYN 报文」称为历史连接，TCP 使用三次握手建立连接的最主要原因就是防止「历史连接」初始化了连接。<br />为什么 TCP 两次握手无法阻止历史连接？<br />主要是因为在两次握手的情况下，服务端没有中间状态给客户端来阻止历史连接，导致服务端可能建立一个历史连接，造成资源浪费。<br />在两次握手的情况下，服务端在收到 SYN 报文后就进入 ESTABLISHED 状态，意味着这时可以给对方发送数据，但是客户端此时还没有进入 ESTABLISHED 状态，假设这次是历史连接，客户端判断到此次连接为历史连接，那么就会回 RST 报文来断开连接，而服务端在第一次握手的时候就进入 ESTABLISHED 状态，所以它可以发送数据的，但是它并不知道这个是历史连接，它只有在收到 RST 报文后才会断开连接。<br />如果采用两次握手建立 TCP 连接的场景下，服务端在向客户端发送数据前并没有阻止掉历史连接，导致服务端建立了一个历史连接，又白白发送了数据，浪费了服务端的资源。<br />要解决这种现象，最好就是在服务端发送数据前，也就是建立连接之前，要阻止掉历史连接，这样就不会造成资源浪费，而要实现这个功能就需要三次握手。<br />所以 TCP 使用三次握手建立连接的最主要原因是防止「历史连接」初始化了连接。<br><a name="eJDsw"></a></p>
+<h6 id="同步双方初始序列号"><a href="#同步双方初始序列号" class="headerlink" title="同步双方初始序列号"></a>同步双方初始序列号</h6><p>TCP 协议的通信双方， 都必须维护一个「序列号」， 序列号是可靠传输的一个关键因素，它的作用：</p>
+<ul>
+<li>接收方可以去除重复的数据；</li>
+<li>接收方可以根据数据包的序列号按序接收；</li>
+<li>可以标识发送出去的数据包中哪些是已经被对方收到的（通过 ACK 报文中的序列号知道）。</li>
+</ul>
+<p>序列号在 TCP 连接中占据着非常重要的作用，所以当客户端发送携带「初始序列号」的 SYN 报文的时候，需要服务端回一个 ACK 应答报文，表示客户端的 SYN 报文已被服务端成功接收，当服务端发送「初始序列号」给客户端的时候，依然也要得到客户端的应答回应，这样一来一回才能确保双方的初始序列号能被可靠的同步。<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685572200148-43bd9dcc-a5ac-4440-8567-459ea0741b53.png#averageHue=%23fbf7f3&clientId=u8242d685-759a-4&from=paste&height=434&id=ub98e6f45&originHeight=725&originWidth=1178&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=284594&status=done&style=none&taskId=ud00d3549-9313-4efd-94e3-d69c14959f8&title=&width=705.2000122070312" alt="image.png"><br />四次握手其实也能够可靠的同步双方的初始化序号，但由于第二步和第三步可以优化成一步，所以就成了「三次握手」。<br />而两次握手只保证了一方的初始序列号能被对方成功接收，没办法保证双方的初始序列号都能被确认接收。<br><a name="D40OK"></a></p>
+<h6 id="避免资源浪费"><a href="#避免资源浪费" class="headerlink" title="避免资源浪费"></a>避免资源浪费</h6><p>如果只有「两次握手」，当客户端发生的 SYN 报文在网络中阻塞，客户端没有接收到 ACK 报文，就会重新发送 SYN ，由于没有第三次握手，服务端不清楚客户端是否收到了自己回复的 ACK 报文，所以服务端每收到一个 SYN 就只能先主动建立一个连接。<br />如果客户端发送的 SYN 报文在网络中阻塞了，重复发送多次 SYN 报文，那么服务端在收到请求后就会建立多个冗余的无效链接，造成不必要的资源浪费。<br />即两次握手会造成消息滞留情况下，服务端重复接受无用的连接请求 SYN 报文而造成重复分配资源。<br><a name="JHDpu"></a></p>
+<h4 id="第一次握手丢失了，会发生什么？"><a href="#第一次握手丢失了，会发生什么？" class="headerlink" title="第一次握手丢失了，会发生什么？"></a>第一次握手丢失了，会发生什么？</h4><p>当客户端想和服务端建立 TCP 连接的时候，首先第一个发的就是 SYN 报文，然后进入到 SYN_SENT 状态。<br />在这之后如果客户端迟迟收不到服务端的 SYN-ACK 报文（第二次握手），就会触发「超时重传」机制，重传 SYN 报文，而且重传的 SYN 报文的序列号都是一样的。<br />在 Linux 里客户端的 SYN 报文最大重传次数由 tcp_syn_retries 内核参数控制，默认值一般是 5。<br />通常第一次超时重传是在 1 秒后，第二次超时重传是在 2 秒，第三次超时重传是在 4 秒后，第四次超时重传是在 8 秒后，第五次是在超时重传 16 秒后，每次超时的时间是上一次的 2 倍。<br />当第五次超时重传后会继续等待 32 秒，如果服务端仍然没有回应 ACK，客户端就不再发送 SYN 包，然后断开 TCP 连接。<br><a name="VwT2b"></a></p>
+<h4 id="第二次握手丢失了，会发生什么？"><a href="#第二次握手丢失了，会发生什么？" class="headerlink" title="第二次握手丢失了，会发生什么？"></a>第二次握手丢失了，会发生什么？</h4><p>当服务端收到客户端的第一次握手后就会回 SYN-ACK 报文给客户端，这就是第二次握手，此时服务端会进入 SYN_RCVD 状态。<br />第二次握手的 SYN-ACK 报文有两个目的 ：</p>
+<ul>
+<li>第二次握手里的 ACK， 是对第一次握手的确认报文；</li>
+<li>第二次握手里的 SYN，是服务端发起建立 TCP 连接的报文。</li>
+</ul>
+<p>因为第二次握手报文里是包含对客户端的第一次握手的 ACK 确认报文，所以如果客户端迟迟没有收到第二次握手，那么客户端就觉得可能自己的 SYN 报文（第一次握手）丢失了，于是客户端就会触发超时重传机制，重传 SYN 报文。<br />然后因为第二次握手中包含服务端的 SYN 报文，所以当客户端收到后需要给服务端发送 ACK 确认报文（第三次握手），服务端才会认为该 SYN 报文被客户端收到了。那么如果第二次握手丢失了，服务端就收不到第三次握手，于是服务端这边会触发超时重传机制，重传 SYN-ACK 报文。<br />在 Linux 下 SYN-ACK 报文的最大重传次数由 tcp_synack_retries内核参数决定，默认值是 5。<br />因此当第二次握手丢失了，客户端和服务端都会重传：</p>
+<ul>
+<li>客户端会重传 SYN 报文，也就是第一次握手，最大重传次数由 tcp_syn_retries内核参数决定；</li>
+<li>服务端会重传 SYN-ACK 报文，也就是第二次握手，最大重传次数由 tcp_synack_retries 内核参数决定。<br><a name="AGQOz"></a></li>
+</ul>
+<h4 id="第三次握手丢失了，会发生什么？"><a href="#第三次握手丢失了，会发生什么？" class="headerlink" title="第三次握手丢失了，会发生什么？"></a>第三次握手丢失了，会发生什么？</h4><p>客户端收到服务端的 SYN-ACK 报文后就会给服务端回一个 ACK 报文，也就是第三次握手，此时客户端状态进入到 ESTABLISH 状态。<br />因为这个第三次握手的 ACK 是对第二次握手的 SYN 的确认报文，所以当第三次握手丢失了，如果服务端那一方迟迟收不到这个确认报文，就会触发超时重传机制，重传 SYN-ACK 报文，直到收到第三次握手，或者达到最大重传次数。<br />注意 ACK 报文是不会有重传的，当 ACK 丢失了就由对方重传对应的报文。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TCP/">TCP</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%86/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">TCP：TCP 基本认识</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">TCP：TCP 连接断开</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%86/" title="TCP：TCP 基本认识"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-06</div><div class="title">TCP：TCP 基本认识</div></div></a></div><div><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80/" title="TCP：TCP 连接断开"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-06</div><div class="title">TCP：TCP 连接断开</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#TCP-%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E8%BF%87%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">TCP 三次握手过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%AF%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%EF%BC%9F%E4%B8%8D%E6%98%AF%E4%B8%A4%E6%AC%A1%E3%80%81%E5%9B%9B%E6%AC%A1%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么是三次握手？不是两次、四次？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E6%89%8D%E5%8F%AF%E4%BB%A5%E5%88%9D%E5%A7%8B%E5%8C%96-Socket%E3%80%81%E5%BA%8F%E5%88%97%E5%8F%B7%E5%92%8C%E7%AA%97%E5%8F%A3%E5%A4%A7%E5%B0%8F%E5%B9%B6%E5%BB%BA%E7%AB%8B-TCP-%E8%BF%9E%E6%8E%A5%EF%BC%9F"><span class="toc-number">2.1.</span> <span class="toc-text">为什么三次握手才可以初始化 Socket、序列号和窗口大小并建立 TCP 连接？</span></a><ol class="toc-child"><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E5%8E%86%E5%8F%B2%E8%BF%9E%E6%8E%A5"><span class="toc-number">2.1.1.</span> <span class="toc-text">避免历史连接</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E5%90%8C%E6%AD%A5%E5%8F%8C%E6%96%B9%E5%88%9D%E5%A7%8B%E5%BA%8F%E5%88%97%E5%8F%B7"><span class="toc-number">2.1.2.</span> <span class="toc-text">同步双方初始序列号</span></a></li><li class="toc-item toc-level-6"><a class="toc-link" href="#%E9%81%BF%E5%85%8D%E8%B5%84%E6%BA%90%E6%B5%AA%E8%B4%B9"><span class="toc-number">2.1.3.</span> <span class="toc-text">避免资源浪费</span></a></li></ol></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">第一次握手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">第二次握手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AC%A1%E6%8F%A1%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">第三次握手丢失了，会发生什么？</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

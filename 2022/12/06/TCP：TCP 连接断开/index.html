@@ -1,0 +1,198 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta name="referrer" content="no-referrer"><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>TCP：TCP 连接断开 | 朝花夕拾</title><meta name="author" content="fangbin"><meta name="copyright" content="fangbin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="TCP 四次挥手过程TCP 断开连接是通过四次挥手的方式，双方都可以主动断开连接，断开连接后主机中的「资源」将被释放，四次挥手的过程如下图：  客户端打算关闭连接，此时会发送一个 TCP 首部 FIN 标志位被置为 1 的报文，即 FIN 报文，之后客户端进入 FIN_WAIT_1 状态； 服务端收到该报文后就向客户端发送 ACK 应答报文，接着服务端进入 CLOSE_WAIT 状态； 客户端收">
+<meta property="og:type" content="article">
+<meta property="og:title" content="TCP：TCP 连接断开">
+<meta property="og:url" content="http://example.com/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80/index.html">
+<meta property="og:site_name" content="朝花夕拾">
+<meta property="og:description" content="TCP 四次挥手过程TCP 断开连接是通过四次挥手的方式，双方都可以主动断开连接，断开连接后主机中的「资源」将被释放，四次挥手的过程如下图：  客户端打算关闭连接，此时会发送一个 TCP 首部 FIN 标志位被置为 1 的报文，即 FIN 报文，之后客户端进入 FIN_WAIT_1 状态； 服务端收到该报文后就向客户端发送 ACK 应答报文，接着服务端进入 CLOSE_WAIT 状态； 客户端收">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/java.jpg">
+<meta property="article:published_time" content="2022-12-06T15:20:00.000Z">
+<meta property="article:modified_time" content="2025-10-24T21:20:54.869Z">
+<meta property="article:author" content="fangbin">
+<meta property="article:tag" content="TCP">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/java.jpg"><link rel="shortcut icon" href="/img/favicon.jpg"><link rel="canonical" href="http://example.com/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E6%96%AD%E5%BC%80/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: true,
+    post: true
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: true,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'TCP：TCP 连接断开',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2025-10-24 21:20:54'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><link rel="stylesheet" href="/css/custom.css"><meta name="generator" content="Hexo 6.3.0"><link rel="alternate" href="/atom.xml" title="朝花夕拾" type="application/atom+xml">
+</head><body><div id="loading-box"><div class="loading-left-bg"></div><div class="loading-right-bg"></div><div class="spinner-box"><div class="configure-border-1"><div class="configure-core"></div></div><div class="configure-border-2"><div class="configure-core"></div></div><div class="loading-word">加载中...</div></div></div><script>const preloader = {
+  endLoading: () => {
+    document.body.style.overflow = 'auto';
+    document.getElementById('loading-box').classList.add("loaded")
+  },
+  initLoading: () => {
+    document.body.style.overflow = '';
+    document.getElementById('loading-box').classList.remove("loaded")
+
+  }
+}
+window.addEventListener('load',()=> { preloader.endLoading() })
+
+if (false) {
+  document.addEventListener('pjax:send', () => { preloader.initLoading() })
+  document.addEventListener('pjax:complete', () => { preloader.endLoading() })
+}</script><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/favicon.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="not-top-img" id="page-header"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">朝花夕拾</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 时间轴</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav></header><main class="layout" id="content-inner"><div id="post"><div id="post-info"><h1 class="post-title">TCP：TCP 连接断开</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-12-06T15:20:00.000Z" title="发表于 2022-12-06 15:20:00">2022-12-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-10-24T21:20:54.869Z" title="更新于 2025-10-24 21:20:54">2025-10-24</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a></span></div><div class="meta-secondline"></div></div></div><article class="post-content" id="article-container"><p><a name="d1Cs0"></a></p>
+<h4 id="TCP-四次挥手过程"><a href="#TCP-四次挥手过程" class="headerlink" title="TCP 四次挥手过程"></a>TCP 四次挥手过程</h4><p>TCP 断开连接是通过四次挥手的方式，双方都可以主动断开连接，断开连接后主机中的「资源」将被释放，四次挥手的过程如下图：<br /><img src="https://cdn.nlark.com/yuque/0/2023/png/25368844/1685567789420-66ca27d2-52a6-4708-9cd4-cf709b466743.png#averageHue=%23f5e9d2&clientId=uc9f66fa5-0b05-4&from=paste&height=667&id=u7206a80a&originHeight=935&originWidth=998&originalType=binary&ratio=1.25&rotation=0&showTitle=false&size=370292&status=done&style=none&taskId=ub7032e6e-08da-4d5c-9a5d-96e9f9d4aa8&title=&width=712.2000122070312"></p>
+<ul>
+<li>客户端打算关闭连接，此时会发送一个 TCP 首部 FIN 标志位被置为 1 的报文，即 FIN 报文，之后客户端进入 FIN_WAIT_1 状态；</li>
+<li>服务端收到该报文后就向客户端发送 ACK 应答报文，接着服务端进入 CLOSE_WAIT 状态；</li>
+<li>客户端收到服务端的 ACK 应答报文后，客户端进入 FIN_WAIT_2 状态；</li>
+<li>等待服务端处理完数据后也向客户端发送 FIN 报文，之后服务端进入 LAST_ACK 状态；</li>
+<li>客户端收到服务端的 FIN 报文后回一个 ACK 应答报文，之后进入 TIME_WAIT 状态；</li>
+<li>服务端收到了 ACK 应答报文后就进入了 CLOSE 状态，至此服务端已经完成连接的关闭；</li>
+<li>客户端在经过 2MSL 一段时间后自动进入 CLOSE 状态，至此客户端也完成连接的关闭。</li>
+</ul>
+<p>可以看到每个方向都需要一个 FIN 和一个 ACK，因此通常被称为四次挥手。<br />需要注意：主动关闭连接的，才有 TIME_WAIT 状态。<br><a name="p87Nd"></a></p>
+<h4 id="为什么挥手需要四次？"><a href="#为什么挥手需要四次？" class="headerlink" title="为什么挥手需要四次？"></a>为什么挥手需要四次？</h4><p>四次挥手双方发 FIN 包的过程：</p>
+<ul>
+<li>关闭连接时，客户端向服务端发送 FIN 时，仅仅表示客户端不再发送数据了但是还能接收数据；</li>
+<li>服务端收到客户端的 FIN 报文时，先回一个 ACK 应答报文，而服务端可能还有数据需要处理和发送，等服务端不再发送数据时，才发送 FIN 报文给客户端来表示同意现在关闭连接。</li>
+</ul>
+<p>从上面过程可知，服务端通常需要等待完成数据的发送和处理，所以服务端的 ACK 和 FIN 一般都会分开发送，因此需要四次挥手。<br><a name="hpAWc"></a></p>
+<h4 id="第一次挥手丢失了，会发生什么？"><a href="#第一次挥手丢失了，会发生什么？" class="headerlink" title="第一次挥手丢失了，会发生什么？"></a>第一次挥手丢失了，会发生什么？</h4><p>当客户端（主动关闭方）调用 close 函数后就会向服务端发送 FIN 报文，试图与服务端断开连接，此时客户端的连接进入到 FIN_WAIT_1 状态。正常情况下如果能及时收到服务端（被动关闭方）的 ACK，则会很快变为 FIN_WAIT2状态。<br />如果第一次挥手丢失了，那么客户端迟迟收不到被动方的 ACK 的话，也就会触发超时重传机制，重传 FIN 报文，重发次数由 tcp_orphan_retries 参数控制。<br />当客户端重传 FIN 报文的次数超过 tcp_orphan_retries 后就不再发送 FIN 报文，则会在等待一段时间（时间为上一次超时时间的 2 倍），如果还是没能收到第二次挥手，那么直接进入到 close 状态。<br><a name="SaBHm"></a></p>
+<h4 id="第二次挥手丢失了，会发生什么？"><a href="#第二次挥手丢失了，会发生什么？" class="headerlink" title="第二次挥手丢失了，会发生什么？"></a>第二次挥手丢失了，会发生什么？</h4><p>当服务端收到客户端的第一次挥手后就会先回一个 ACK 确认报文，此时服务端的连接进入到 CLOSE_WAIT 状态。<br />ACK 报文是不会重传的，所以如果服务端的第二次挥手丢失了，客户端就会触发超时重传机制，重传 FIN 报文，直到收到服务端的第二次挥手，或者达到最大的重传次数。<br />当客户端收到第二次挥手，也就是收到服务端发送的 ACK 报文后客户端就会处于 FIN_WAIT2 状态，在这个状态需要等服务端发送第三次挥手，也就是服务端的 FIN 报文。<br />对于 close 函数关闭的连接，由于无法再发送和接收数据，所以 FIN_WAIT2 状态不可以持续太久，而 tcp_fin_timeout 控制了这个状态下连接的持续时长，默认值是 60 秒。这意味着对于调用 close 关闭的连接，如果在 60 秒后还没有收到 FIN 报文，客户端（主动关闭方）的连接就会直接关闭。<br />但是注意如果主动关闭方使用 shutdown 函数关闭连接，指定了只关闭发送方向，而接收方向并没有关闭，那么意味着主动关闭方还是可以接收数据的。此时如果主动关闭方一直没收到第三次挥手，那么主动关闭方的连接将会一直处于 FIN_WAIT2 状态（tcp_fin_timeout 无法控制 shutdown 关闭的连接）。<br><a name="hLpHE"></a></p>
+<h4 id="第三次挥手丢失了，会发生什么？"><a href="#第三次挥手丢失了，会发生什么？" class="headerlink" title="第三次挥手丢失了，会发生什么？"></a>第三次挥手丢失了，会发生什么？</h4><p>当服务端（被动关闭方）收到客户端（主动关闭方）的 FIN 报文后内核会自动回复 ACK，同时连接处于 CLOSE_WAIT 状态，顾名思义它表示等待应用进程调用 close 函数关闭连接。<br />此时内核是没有权利替代进程关闭连接，必须由进程主动调用 close 函数来触发服务端发送 FIN 报文。<br />服务端处于 CLOSE_WAIT 状态时调用了 close 函数，内核就会发出 FIN 报文，同时连接进入 LAST_ACK 状态，等待客户端返回 ACK 来确认连接关闭。<br />如果迟迟收不到这个 ACK，服务端就会重发 FIN 报文，重发次数仍然由 tcp_orphan_retries 参数控制，这与客户端重发 FIN 报文的重传次数控制方式是一样的。<br />客户端因为是通过 close 函数关闭连接的，处于 FIN_WAIT_2 状态是有时长限制的，如果 tcp_fin_timeout 时间内还是没能收到服务端的第三次挥手（FIN 报文），那么客户端就会断开连接。<br><a name="YdxSw"></a></p>
+<h4 id="第四次挥手丢失了，会发生什么？"><a href="#第四次挥手丢失了，会发生什么？" class="headerlink" title="第四次挥手丢失了，会发生什么？"></a>第四次挥手丢失了，会发生什么？</h4><p>当客户端收到服务端的第三次挥手的 FIN 报文后就会回 ACK 报文，也就是第四次挥手，此时客户端连接进入 TIME_WAIT 状态。<br />在 Linux 系统，TIME_WAIT 状态会持续 2MSL 后才会进入关闭状态。<br />然后服务端（被动关闭方）没有收到 ACK 报文前，还是处于 LAST_ACK 状态。<br />如果第四次挥手的 ACK 报文没有到达服务端，服务端就会重发 FIN 报文，重发次数仍然由 tcp_orphan_retries参数控制。<br />客户端在收到第三次挥手后就会进入 TIME_WAIT 状态，开启时长为 2MSL 的定时器，如果途中再次收到第三次挥手（FIN 报文）后，就会重置定时器，当等待 2MSL 时长后，客户端就会断开连接。<br><a name="Mbxa6"></a></p>
+<h4 id="为什么需要-TIME-WAIT-状态？"><a href="#为什么需要-TIME-WAIT-状态？" class="headerlink" title="为什么需要 TIME_WAIT 状态？"></a>为什么需要 TIME_WAIT 状态？</h4><p>主动发起关闭连接的一方，才会有 TIME-WAIT 状态。<br><a name="H03CT"></a></p>
+<h5 id="防止历史连接中的数据，被后面相同四元组的连接错误的接收"><a href="#防止历史连接中的数据，被后面相同四元组的连接错误的接收" class="headerlink" title="防止历史连接中的数据，被后面相同四元组的连接错误的接收"></a>防止历史连接中的数据，被后面相同四元组的连接错误的接收</h5><p>为了能更好的理解这个原因，先来了解序列号（SEQ）和初始序列号（ISN）。</p>
+<ul>
+<li>序列号，是 TCP 一个头部字段，标识了 TCP 发送端到 TCP 接收端的数据流的一个字节，因为 TCP 是面向字节流的可靠协议，为了保证消息的顺序性和可靠性，TCP 为每个传输方向上的每个字节都赋予了一个编号，以便于传输成功后确认、丢失后重传以及在接收端保证不会乱序。序列号是一个 32 位的无符号数，因此在到达 4G 之后再循环回到 0；</li>
+<li>初始序列号，在 TCP 建立连接的时候客户端和服务端都会各自生成一个初始序列号，它是基于时钟生成的一个随机数，来保证每个连接都拥有不同的初始序列号。初始化序列号可被视为一个 32 位的计数器，该计数器的数值每 4 微秒加 1，循环一次需要 4.55 小时。</li>
+</ul>
+<p>序列号和初始化序列号并不是无限递增的，会发生回绕为初始值的情况，这意味着无法根据序列号来判断新老数据。</p>
+<ul>
+<li>服务端在关闭连接之前发送的 SEQ &#x3D; 301 报文，被网络延迟了；</li>
+<li>接着服务端以相同的四元组重新打开了新连接，前面被延迟的 SEQ &#x3D; 301 这时抵达了客户端，而且该数据报文的序列号刚好在客户端接收窗口内，因此客户端会正常接收这个数据报文，但是这个数据报文是上一个连接残留下来的，这样就产生数据错乱等严重的问题。</li>
+</ul>
+<p>为了防止历史连接中的数据被后面相同四元组的连接错误的接收，因此 TCP 设计了 TIME_WAIT 状态，状态会持续 2MSL 时长，这个时间足以让两个方向上的数据包都被丢弃，使得原来连接的数据包在网络中都自然消失，再出现的数据包一定都是新建立连接所产生的。<br><a name="VCApo"></a></p>
+<h5 id="保证「被动关闭连接」的一方，能被正确的关闭"><a href="#保证「被动关闭连接」的一方，能被正确的关闭" class="headerlink" title="保证「被动关闭连接」的一方，能被正确的关闭"></a>保证「被动关闭连接」的一方，能被正确的关闭</h5><p>TIME-WAIT 另一个重要的作用是等待足够的时间以确保最后的 ACK 能让被动关闭方接收，从而帮助其正常关闭。<br />如果客户端（主动关闭方）最后一次 ACK 报文（第四次挥手）在网络中丢失了，那么按照 TCP 可靠性原则，服务端（被动关闭方）会重发 FIN 报文。<br />假设客户端没有 TIME_WAIT 状态，而是在发完最后一次回 ACK 报文就直接进入 CLOSE 状态，如果该 ACK 报文丢失了，服务端会重传 FIN 报文，而这时客户端已经进入到关闭状态了，在收到服务端重传的 FIN 报文后就会回 RST 报文。服务端收到这个 RST 并将其解释为一个错误（Connection reset by peer），这对于一个可靠的协议来说不是一个优雅的终止方式。<br />为了防止这种情况出现，客户端必须等待足够长的时间，确保服务端能够收到 ACK，如果服务端没有收到 ACK，那么就会触发 TCP 重传机制，服务端会重新发送一个 FIN，这样一去一来刚好两个 MSL 的时间。<br />客户端在收到服务端重传的 FIN 报文时，TIME_WAIT 状态的等待时间会重置回 2MSL。<br><a name="hNAQp"></a></p>
+<h4 id="为什么-TIME-WAIT-等待的时间是-2MSL？"><a href="#为什么-TIME-WAIT-等待的时间是-2MSL？" class="headerlink" title="为什么 TIME_WAIT 等待的时间是 2MSL？"></a>为什么 TIME_WAIT 等待的时间是 2MSL？</h4><p>MSL 是 Maximum Segment Lifetime，报文最大生存时间，它是任何报文在网络上存在的最长时间，超过这个时间报文将被丢弃。因为 TCP 报文是基于 IP 协议的，而 IP 头中有一个 TTL 字段，是 IP 数据报文可以经过的最大路由数，每经过一个处理它的路由器此值就减 1，当此值为 0 则数据报将被丢弃，同时发送 ICMP 报文通知源主机。<br />MSL 与 TTL 的区别： MSL 的单位是时间，而 TTL 是经过路由跳数。所以 MSL 应该要大于等于 TTL 消耗为 0 的时间，以确保报文已被自然消亡。<br />TTL 的值一般是 64，Linux 将 MSL 设置为 30 秒，意味着 Linux 认为数据报文经过 64 个路由器的时间不会超过 30 秒，如果超过了，就认为报文已经消失在网络中了。<br />TIME_WAIT 等待 2 倍的 MSL，合理的解释是： 网络中可能存在来自发送方的数据包，当这些发送方的数据包被接收方处理后又会向对方发送响应，所以一来一回需要等待 2 倍的时间。<br />比如如果被动关闭方没有收到断开连接的最后的 ACK 报文，就会触发超时重发 FIN 报文，另一方接收到 FIN 后，会重发 ACK 给被动关闭方， 一来一去正好 2 个 MSL。<br />可以看到 2MSL 时长其实是相当于至少允许报文丢失一次。比如，ACK 在一个 MSL 内丢失，这样被动方重发的 FIN 会在第 2 个 MSL 内到达，TIME_WAIT 状态的连接可以应对。<br />连续两次丢包的概率只有万分之一，这个概率实在是太小了，忽略它比解决它更具性价比。<br />2MSL 的时间是从客户端接收到 FIN 后发送 ACK 开始计时的。如果在 TIME-WAIT 时间内，因为客户端的 ACK 没有传输到服务端，客户端又接收到了服务端重发的 FIN 报文，那么 2MSL 时间将重新计时。<br />在 Linux 系统里 2MSL 默认是 60 秒，那么一个 MSL 也就是 30 秒。Linux 系统停留在 TIME_WAIT 的时间为固定的 60 秒。</p>
+</article><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/TCP/">TCP</a></div><div class="post_share"><div class="social-share" data-image="/img/java.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="prev-post pull-left"><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/"><img class="prev-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="pagination-info"><div class="label">上一篇</div><div class="prev_info">TCP：TCP 连接建立</div></div></a></div><div class="next-post pull-right"><a href="/2022/12/07/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F%E7%BB%93%E6%9E%84%EF%BC%9ALinux%20%E5%86%85%E6%A0%B8%20vs%20Windows%20%E5%86%85%E6%A0%B8/"><img class="next-cover" src="/img/java.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">操作系统结构：Linux 内核 vs Windows 内核</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E5%9F%BA%E6%9C%AC%E8%AE%A4%E8%AF%86/" title="TCP：TCP 基本认识"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-06</div><div class="title">TCP：TCP 基本认识</div></div></a></div><div><a href="/2022/12/06/TCP%EF%BC%9ATCP%20%E8%BF%9E%E6%8E%A5%E5%BB%BA%E7%AB%8B/" title="TCP：TCP 连接建立"><img class="cover" src="/img/java.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-12-06</div><div class="title">TCP：TCP 连接建立</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/favicon.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">fangbin</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">110</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">29</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">11</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/aspde"><i class="fab fa-github"></i><span>Github</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#TCP-%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%E8%BF%87%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">TCP 四次挥手过程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E6%8C%A5%E6%89%8B%E9%9C%80%E8%A6%81%E5%9B%9B%E6%AC%A1%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">为什么挥手需要四次？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8C%A5%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">第一次挥手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E6%AC%A1%E6%8C%A5%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">第二次挥手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E6%AC%A1%E6%8C%A5%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">第三次挥手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%AC%AC%E5%9B%9B%E6%AC%A1%E6%8C%A5%E6%89%8B%E4%B8%A2%E5%A4%B1%E4%BA%86%EF%BC%8C%E4%BC%9A%E5%8F%91%E7%94%9F%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">第四次挥手丢失了，会发生什么？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-TIME-WAIT-%E7%8A%B6%E6%80%81%EF%BC%9F"><span class="toc-number">7.</span> <span class="toc-text">为什么需要 TIME_WAIT 状态？</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E9%98%B2%E6%AD%A2%E5%8E%86%E5%8F%B2%E8%BF%9E%E6%8E%A5%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%EF%BC%8C%E8%A2%AB%E5%90%8E%E9%9D%A2%E7%9B%B8%E5%90%8C%E5%9B%9B%E5%85%83%E7%BB%84%E7%9A%84%E8%BF%9E%E6%8E%A5%E9%94%99%E8%AF%AF%E7%9A%84%E6%8E%A5%E6%94%B6"><span class="toc-number">7.1.</span> <span class="toc-text">防止历史连接中的数据，被后面相同四元组的连接错误的接收</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BF%9D%E8%AF%81%E3%80%8C%E8%A2%AB%E5%8A%A8%E5%85%B3%E9%97%AD%E8%BF%9E%E6%8E%A5%E3%80%8D%E7%9A%84%E4%B8%80%E6%96%B9%EF%BC%8C%E8%83%BD%E8%A2%AB%E6%AD%A3%E7%A1%AE%E7%9A%84%E5%85%B3%E9%97%AD"><span class="toc-number">7.2.</span> <span class="toc-text">保证「被动关闭连接」的一方，能被正确的关闭</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88-TIME-WAIT-%E7%AD%89%E5%BE%85%E7%9A%84%E6%97%B6%E9%97%B4%E6%98%AF-2MSL%EF%BC%9F"><span class="toc-number">8.</span> <span class="toc-text">为什么 TIME_WAIT 等待的时间是 2MSL？</span></a></li></ol></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2021 - 2025 By fangbin</div><div class="footer_custom_text">Hi, welcome to my blog!</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>
